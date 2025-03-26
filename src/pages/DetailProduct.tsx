@@ -8,15 +8,16 @@ import CardProductVariant from "../components/CardProductVariant";
 import Product from "../models/product.model";
 import ProductVariants from "../models/productVariants.model";
 import productService from "../services/product.service";
+import ButtonField from "../components/ButtonField";
 
 const DetailProduct = () => {
-
     const [product, setProduct] = useState<Product>({
         variants: [],
     });
 
     const [selectedVariant, setSelectedVariant] = useState(product.variants?.[0]);
     const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
+    const [quantity, setQuantity] = useState(1);
 
     const { id } = useParams();
 
@@ -56,6 +57,29 @@ const DetailProduct = () => {
         setSelectedVariant(variant);
         setSelectedVariantId(variant?.id ?? null);
     };
+
+    const handleIncrease = () => {
+        setQuantity((prev) => {
+            if (selectedVariant?.availableQuantity && prev >= selectedVariant.availableQuantity) {
+                return selectedVariant.availableQuantity; // Không cho tăng quá số lượng có sẵn
+            }
+            return prev + 1;
+        });
+    };
+
+    const handleDecrease = () => {
+        setQuantity((prev) => (prev > 1 ? prev - 1 : 1)); // Không cho giảm dưới 1
+    };
+
+    const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = Math.max(1, Number(e.target.value)); // Đảm bảo số lượng không nhỏ hơn 1
+        if (selectedVariant?.availableQuantity && value > selectedVariant.availableQuantity) {
+            setQuantity(selectedVariant.availableQuantity); // Đặt về số lượng có sẵn nếu vượt quá
+        } else {
+            setQuantity(value);
+        }
+    };
+
     return (
         <>
             <div style={{
@@ -77,6 +101,7 @@ const DetailProduct = () => {
                     <p>{product.name}</p>
                 </div>
 
+                {/* Product Information */}
                 <div style={{
                     display: "flex",
                     backgroundColor: "#fff"
@@ -119,6 +144,8 @@ const DetailProduct = () => {
                                     paddingRight: "10px",
                                     borderRight: "1px solid rgba(0, 0, 0, .14)",
                                 }}>
+
+                                    {/* Rating */}
                                     <div style={{
                                         borderBottom: "1px solid #222",
                                         paddingBottom: "1px",
@@ -175,6 +202,8 @@ const DetailProduct = () => {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Reviews */}
                                 <div style={{
                                     fontWeight: "500",
                                     display: "flex",
@@ -194,6 +223,7 @@ const DetailProduct = () => {
                                     </div>
                                 </div>
 
+                                {/* Quantity Sold */}
                                 <div style={{
                                     fontWeight: "500",
                                     display: "flex",
@@ -213,6 +243,7 @@ const DetailProduct = () => {
                             </div>
                         </div>
 
+                        {/* Price */}
                         <div style={{
                             padding: "15px 20px",
                             backgroundColor: "#fafafa",
@@ -257,6 +288,7 @@ const DetailProduct = () => {
                             </div>
                         </div>
 
+                        {/* Delivery */}
                         <div style={{
                             display: "flex",
                             marginTop: "15px",
@@ -316,6 +348,7 @@ const DetailProduct = () => {
                             </div>
                         </div>
 
+                        {/* Variants */}
                         <div style={{
                             display: "flex",
                             marginTop: "15px",
@@ -359,6 +392,7 @@ const DetailProduct = () => {
                             </div>
                         </div>
 
+                        {/* Quantity */}
                         <div style={{
                             display: "flex",
                             marginTop: "15px",
@@ -374,9 +408,65 @@ const DetailProduct = () => {
                             }}>
                                 Số lượng
                             </div>
-                            <div style={{ display: "flex" }}>
-                                <div></div>
-                                <div style={{ color: "#757575", fontSize: "12px" }}> {selectedVariant?.availableQuantity} sản phẩm có sẵn</div>
+                            <div style={{
+                                display: "flex",
+                                alignItems: "center",
+                            }}>
+                                {/* Nút giảm */}
+                                <button
+                                    onClick={handleDecrease}
+                                    style={{
+                                        cursor: "pointer",
+                                        backgroundColor: "#fff",
+                                        border: "1px solid #ccc",
+                                        padding: "5px 10px",
+                                        fontSize: "14px",
+                                        fontWeight: "500",
+                                        borderRadius: "2px 0 0 2px",
+                                    }}
+                                >
+                                    -
+                                </button>
+
+                                {/* Ô nhập số lượng */}
+                                <input
+                                    type="number"
+                                    value={quantity}
+                                    onChange={handleQuantityChange} // Gọi hàm kiểm tra số lượng
+                                    style={{
+                                        width: "50px",
+                                        textAlign: "center",
+                                        border: "1px solid #ccc",
+                                        fontSize: "14px",
+                                        fontWeight: "500",
+                                        padding: "5px",
+                                    }}
+                                />
+
+                                {/* Nút tăng */}
+                                <button
+                                    onClick={handleIncrease}
+                                    style={{
+                                        cursor: "pointer",
+                                        backgroundColor: "#fff",
+                                        border: "1px solid #ccc",
+                                        padding: "5px 10px",
+                                        fontSize: "14px",
+                                        fontWeight: "500",
+                                        borderRadius: "0 2px 2px 0",
+                                    }}
+                                >
+                                    +
+                                </button>
+
+                                {/* Hiển thị số lượng sản phẩm có sẵn */}
+                                <div style={{
+                                    color: "#757575",
+                                    fontSize: "12px",
+                                    marginLeft: "10px",
+                                }}>
+                                    {selectedVariant?.availableQuantity} sản phẩm có sẵn
+                                </div>
                             </div>
                         </div>
 
@@ -392,7 +482,7 @@ const DetailProduct = () => {
                                     backgroundColor: "#feeeea",
                                     color: "#ee4d2d",
                                     border: "1px solid #ee4d2d",
-                                    padding: "10px 20px",
+                                    padding: "0.8rem 1.5rem",
                                     borderRadius: "2px",
                                     fontSize: "14px",
                                     fontWeight: "500",
@@ -411,26 +501,7 @@ const DetailProduct = () => {
                             </div>
 
                             <div>
-                                <button style={{
-                                    cursor: "pointer",
-                                    backgroundColor: "#ee4d2d",
-                                    color: "#fff",
-                                    border: "none",
-                                    padding: "10px 20px",
-                                    borderRadius: "2px",
-                                    fontSize: "14px",
-                                    fontWeight: "500",
-                                    transition: "background-color 0.3s",
-                                }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.backgroundColor = "#d43720";
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.backgroundColor = "#ee4d2d";
-                                    }}
-                                >
-                                    Mua ngay
-                                </button>
+                                <ButtonField>Mua ngay</ButtonField>
                             </div>
                         </div>
                     </div>

@@ -50,7 +50,7 @@ const CardProduct = ({
                 onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
                 onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1.0)")}
 
-                onClick={() => navigate(`/product/${id}`)}
+                onClick={() => navigate(`/products/${id}`)}
             >
                 <img
                     src={imageUrl}
