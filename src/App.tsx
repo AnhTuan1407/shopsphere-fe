@@ -2,6 +2,13 @@ import { createBrowserRouter, Outlet, RouteObject, RouterProvider } from 'react-
 import MainLayout from "./layouts/MainLayout";
 import HomePage from './pages/HomePage';
 import DetailProduct from './pages/DetailProduct';
+import SignUp from './pages/SignUp';
+import SignIn from './pages/SignIn';
+import AuthLayout from './layouts/AuthLayout';
+import CartPage from './pages/CartPage';
+import CartLayout from './layouts/CartLayout';
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const appRoutes: RouteObject[] = [
   {
@@ -13,9 +20,33 @@ const appRoutes: RouteObject[] = [
         element: <HomePage />
       },
       {
-        path: "/product/:id",
+        path: "/products/:id",
         element: <DetailProduct />
+      },
+    ]
+  },
+  {
+    path: "/",
+    element: <AuthLayout />,
+    children: [
+      {
+        path: "sign-up",
+        element: <SignUp />
+      },
+      {
+        path: "sign-in",
+        element: <SignIn />
       }
+    ]
+  },
+  {
+    path: "/",
+    element: <CartLayout />,
+    children: [
+      {
+        path: "cart/:id",
+        element: <CartPage />
+      },
     ]
   }
 ]
@@ -32,6 +63,7 @@ const router = createBrowserRouter([
 const App = () => {
   return (
     <>
+      <ToastContainer />
       <RouterProvider router={router} />
     </>
   );

@@ -1,6 +1,12 @@
-import { FaSearch, FaShoppingCart } from "react-icons/fa";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import shopeeWhiteLogo from "../assets/shopee-white-logo.png";
-import searchIcon from "../assets/search-icon.jpg";
+import SearchField from "../components/SearchField";
+import authenticationService from "../services/authentication.service";
+import profileService from "../services/profile.service";
+import Profile from "../models/profile.model";
+
 
 const linkStyle = {
     textDecoration: "none",
@@ -10,6 +16,63 @@ const linkStyle = {
 };
 
 const HeaderLayout = () => {
+    const navigate = useNavigate();
+    const [username, setUsername] = useState<string | null>(null);
+    const [token, setToken] = useState<string | null>(null);
+    const [userId, setUserId] = useState<string | null>(null);
+    const [profileId, setProfileId] = useState<string | null>(null);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    // Kiểm tra token trong localStorage
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        const userId = localStorage.getItem("userId");
+        setUserId(userId);
+        setToken(token);
+        const storedUsername = localStorage.getItem("username");
+        if (token && storedUsername) {
+            setUsername(storedUsername);
+        }
+
+        const fetchProfile = async () => {
+            const profileResponse = await profileService.getProfileByUserId(userId!);
+            if (profileResponse?.result) {
+                const profile: Profile = profileResponse.result;
+                if (profile.id) {
+                    localStorage.setItem("profileId", profile.id);
+                    setProfileId(profile.id);
+                } else {
+                    console.error("Profile ID is undefined");
+                }
+            } else {
+                console.error("Profile not found or invalid response");
+            }
+        }
+
+        fetchProfile()
+    }, []);
+
+    const handleLogout = async () => {
+        const response = await authenticationService.logout(token ?? "");
+        if (response.code) {
+            localStorage.clear();
+            setUsername(null);
+            toast.success("Đăng xuất thành công");
+            navigate("/");
+        }
+        else {
+            toast.error("Đăng xuất không thành công: " + response.message);
+        }
+    };
+
+    const toggleDropdown = () => {
+        setIsDropdownOpen((prev) => !prev);
+    };
+
+    const closeDropdown = () => {
+        setIsDropdownOpen(false);
+    };
+
     return (
         <>
             <div style={{
@@ -43,42 +106,7 @@ const HeaderLayout = () => {
                         marginLeft: "1rem",
                         marginRight: "1rem",
                     }}>
-                        <form style={{
-                            display: "flex",
-                            alignItems: "center",
-                            borderRadius: "2px",
-                            backgroundColor: "#fff",
-                            height: "2.5rem",
-                            padding: "0.1875rem",
-                            boxShadow: "0 1px 1px rgba(0, 0, 0, 0.1)",
-                        }}>
-                            <input
-                                placeholder="Shopee bao ship 0Đ - Đăng ký ngay!"
-                                style={{
-                                    flex: 1,
-                                    border: "none",
-                                    outline: "none",
-                                    padding: "0.5rem",
-                                    fontSize: "14px",
-                                }}
-                            />
-                            <button style={{
-                                backgroundColor: "#ee4d2d",
-                                color: "#fff",
-                                border: "none",
-                                padding: "0 1rem",
-                                cursor: "pointer",
-                                fontSize: "14px",
-                                height: "100%",
-                                borderRadius: "2px",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: "0.5rem",
-                            }}>
-                                {/* <FaSearch /> */}
-                            </button>
-                        </form>
+                        <SearchField placeholder="Tìm tên sản phẩm, thương hiệu, và tên shop" width="100%" height="2.25rem" />
                         <div style={{
                             marginTop: "0.5rem",
                         }}>
@@ -87,7 +115,7 @@ const HeaderLayout = () => {
                                 display: "flex",
                                 gap: "1rem",
                                 color: "#fff",
-                                fontSize: "11px",
+                                fontSize: "10px",
                                 padding: "0",
                                 margin: "0",
                             }}>
@@ -119,16 +147,198 @@ const HeaderLayout = () => {
                         </div>
                     </div>
 
-                    {/* Cart */}
+                    {/* Cart and Auth Buttons */}
                     <div style={{
-                        color: "#fff",
-                        fontSize: "30px",
-                        cursor: "pointer",
                         display: "flex",
                         alignItems: "center",
-                        gap: "0.5rem",
+                        gap: "1rem",
                     }}>
-                        {/* <FaShoppingCart /> */}
+                        {/* Cart */}
+                        <div style={{
+                            color: "#fff",
+                            fontSize: "30px",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.5rem",
+                        }}>
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                width="36px"
+                                height="36px"
+                                fill="currentColor"
+                                className="bi bi-cart3"
+                                viewBox="0 0 16 16"
+                                onClick={() => navigate(`/cart/${profileId}`)}>
+                                <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .49.598l-1 5a.5.5 0 0 1-.465.401l-9.397.472L4.415 11H13a.5.5 0 0 1 0 1H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5M3.102 4l.84 4.479 9.144-.459L13.89 4zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4m-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2m7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2" />
+                            </svg>
+                        </div>
+
+                        {/* Hiển thị username hoặc nút Đăng nhập/Đăng ký */}
+                        {username ? (
+                            <div
+                                style={{ position: "relative" }}
+                                onMouseEnter={() => setIsDropdownOpen(true)}
+                                onMouseLeave={() => setIsDropdownOpen(false)}
+                            >
+                                {/* Username */}
+                                <div
+                                    style={{
+                                        color: "#fff",
+                                        cursor: "pointer",
+                                        fontWeight: "500",
+                                    }}
+                                >
+                                    {username}
+                                </div>
+
+                                {/* Dropdown menu */}
+                                {isDropdownOpen && (
+                                    <div
+                                        style={{
+                                            position: "absolute",
+                                            top: "100%",
+                                            right: 0,
+                                            backgroundColor: "#fff",
+                                            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                                            borderRadius: "4px",
+                                            overflow: "hidden",
+                                            zIndex: 10,
+                                            fontSize: "12px",
+                                        }}
+                                    >
+                                        <ul
+                                            style={{
+                                                listStyle: "none",
+                                                margin: 0,
+                                                padding: 0,
+                                            }}
+                                        >
+                                            <li
+                                                style={{
+                                                    padding: "10px 20px",
+                                                    cursor: "pointer",
+                                                    borderBottom: "1px solid #f0f0f0",
+                                                    minWidth: "100px",
+                                                    transition: "background-color 0.3s, color 0.3s",
+                                                }}
+                                                onClick={() => {
+                                                    closeDropdown();
+                                                    navigate(`/profile/${profileId}`);
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.backgroundColor = "#f5f5f5";
+                                                    e.currentTarget.style.color = "#333";
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.backgroundColor = "#fff";
+                                                    e.currentTarget.style.color = "#000";
+                                                }}
+                                            >
+                                                Tài khoản của tôi
+                                            </li>
+                                            <li
+                                                style={{
+                                                    padding: "10px 20px",
+                                                    cursor: "pointer",
+                                                    borderBottom: "1px solid #f0f0f0",
+                                                    transition: "background-color 0.3s, color 0.3s",
+                                                }}
+                                                onClick={() => {
+                                                    closeDropdown();
+                                                    navigate(`/orders/${profileId}`);
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.backgroundColor = "#f5f5f5";
+                                                    e.currentTarget.style.color = "#333";
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.backgroundColor = "#fff";
+                                                    e.currentTarget.style.color = "#000";
+                                                }}
+                                            >
+                                                Đơn mua
+                                            </li>
+                                            <li
+                                                style={{
+                                                    padding: "10px 20px",
+                                                    cursor: "pointer",
+                                                    color: "#ee4d2d",
+                                                    transition: "background-color 0.3s, color 0.3s",
+                                                }}
+                                                onClick={() => {
+                                                    closeDropdown();
+                                                    handleLogout();
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.backgroundColor = "#f5f5f5";
+                                                    e.currentTarget.style.color = "#d43720";
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.backgroundColor = "#fff";
+                                                    e.currentTarget.style.color = "#ee4d2d";
+                                                }}
+                                            >
+                                                Đăng xuất
+                                            </li>
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <>
+                                {/* Đăng ký */}
+                                <button
+                                    style={{
+                                        backgroundColor: "#fff",
+                                        color: "#ee4d2d",
+                                        border: "1px solid #ee4d2d",
+                                        padding: "0.5rem 1rem",
+                                        borderRadius: "4px",
+                                        fontSize: "14px",
+                                        fontWeight: "500",
+                                        cursor: "pointer",
+                                        transition: "background-color 0.3s, color 0.3s",
+                                    }}
+                                    onClick={() => navigate("/sign-up")}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor = "rgb(255 200 186)";
+                                        e.currentTarget.style.color = "#fff";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor = "#fff";
+                                        e.currentTarget.style.color = "#ee4d2d";
+                                    }}
+                                >
+                                    Đăng ký
+                                </button>
+
+                                {/* Đăng nhập */}
+                                <button
+                                    style={{
+                                        backgroundColor: "#fff",
+                                        color: "#ee4d2d",
+                                        border: "1px solid #ee4d2d",
+                                        padding: "0.5rem 1rem",
+                                        borderRadius: "4px",
+                                        fontSize: "14px",
+                                        fontWeight: "500",
+                                        cursor: "pointer",
+                                        transition: "background-color 0.3s, color 0.3s",
+                                    }}
+                                    onClick={() => navigate("/sign-in")}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor = "rgb(255 200 186)";
+                                        e.currentTarget.style.color = "#fff";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor = "#fff";
+                                        e.currentTarget.style.color = "#ee4d2d";
+                                    }}
+                                >
+                                    Đăng nhập
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
