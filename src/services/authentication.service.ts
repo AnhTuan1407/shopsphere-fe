@@ -16,6 +16,10 @@ const authenticationService = {
     logout: async (data: string): Promise<ApiResponse> => {
         const response = await api.post("/identity/auth/logout", data);
         return response.data;
+    },
+    introspect: async (data: string): Promise<ApiResponse> => {
+        const response = await api.post("/identity/auth/introspect", data);
+        return response.data;
     }
 };
 

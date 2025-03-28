@@ -3,9 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import shopeeWhiteLogo from "../assets/shopee-white-logo.png";
 import SearchField from "../components/SearchField";
+import Profile from "../models/profile.model";
 import authenticationService from "../services/authentication.service";
 import profileService from "../services/profile.service";
-import Profile from "../models/profile.model";
+import cartService from "../services/cart.service";
+import Cart from "../models/cart.model";
 
 
 const linkStyle = {
@@ -22,11 +24,29 @@ const HeaderLayout = () => {
     const [userId, setUserId] = useState<string | null>(null);
     const [profileId, setProfileId] = useState<string | null>(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [cartItemCount, setCartItemCount] = useState<number>(0);
 
     // Kiểm tra token trong localStorage
     useEffect(() => {
         const token = localStorage.getItem("token");
         const userId = localStorage.getItem("userId");
+
+        if (token) {
+            const introspectToken = async () => {
+                const response = await authenticationService.introspect(token);
+                console.log("response:", response);
+
+                if (!(response?.result as { valid: boolean })?.valid) {
+                    localStorage.clear();
+                    setUsername(null);
+                    toast.error("Hết hạn phiên đăng nhập, vui lòng đăng nhập lại");
+                    navigate("/");
+                }
+            }
+
+            introspectToken();
+        }
+
         setUserId(userId);
         setToken(token);
         const storedUsername = localStorage.getItem("username");
@@ -49,12 +69,29 @@ const HeaderLayout = () => {
             }
         }
 
-        fetchProfile()
-    }, []);
+        const fetchCart = async () => {
+            if (profileId) {
+                const cartResponse = await cartService.getCartByProfileId(profileId!);
+                if (cartResponse?.result) {
+                    const cart: Cart = cartResponse.result;
+                    if (cart && Array.isArray(cart.cartItems)) {
+                        setCartItemCount(cart.cartItems.length);
+                    } else {
+                        console.error("Cart items are not in the expected format");
+                    }
+                } else {
+                    console.error("Cart not found or invalid response");
+                }
+            }
+        }
+
+        fetchProfile();
+        fetchCart();
+    }, [navigate]);
 
     const handleLogout = async () => {
         const response = await authenticationService.logout(token ?? "");
-        if (response.code) {
+        if (response.code == 1000) {
             localStorage.clear();
             setUsername(null);
             toast.success("Đăng xuất thành công");
@@ -154,23 +191,41 @@ const HeaderLayout = () => {
                         gap: "1rem",
                     }}>
                         {/* Cart */}
-                        <div style={{
-                            color: "#fff",
-                            fontSize: "30px",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.5rem",
-                        }}>
-                            <svg xmlns="http://www.w3.org/2000/svg"
+                        <div style={{ position: "relative", cursor: "pointer" }}>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
                                 width="36px"
                                 height="36px"
+                                color="#fff"
                                 fill="currentColor"
                                 className="bi bi-cart3"
                                 viewBox="0 0 16 16"
-                                onClick={() => navigate(`/cart/${profileId}`)}>
+                                onClick={() => navigate(`/cart/${profileId}`)}
+                            >
                                 <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .49.598l-1 5a.5.5 0 0 1-.465.401l-9.397.472L4.415 11H13a.5.5 0 0 1 0 1H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5M3.102 4l.84 4.479 9.144-.459L13.89 4zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4m-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2m7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2" />
                             </svg>
+                            {cartItemCount > 0 && (
+                                <div
+                                    style={{
+                                        position: "absolute",
+                                        top: "-5px",
+                                        right: "-5px",
+                                        backgroundColor: "#fff",
+                                        color: "#ee4d2d",
+                                        borderRadius: "50%",
+                                        border: "#ee4d2d",
+                                        width: "20px",
+                                        height: "20px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        fontSize: "12px",
+                                        fontWeight: "400",
+                                    }}
+                                >
+                                    {cartItemCount}
+                                </div>
+                            )}
                         </div>
 
                         {/* Hiển thị username hoặc nút Đăng nhập/Đăng ký */}
