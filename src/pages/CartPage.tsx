@@ -7,18 +7,29 @@ import Cart from "../models/cart.model";
 import cartService from "../services/cart.service";
 import productService from "../services/product.service";
 
+const groupCartItemsBySupplier = (cartItems: Array<any>) => {
+    return cartItems.reduce((grouped: Record<string, Array<any>>, item) => {
+        const supplierName = item.supplierName || "Unknown Supplier";
+        if (!grouped[supplierName]) {
+            grouped[supplierName] = [];
+        }
+        grouped[supplierName].push(item);
+        return grouped;
+    }, {});
+};
+
 const CartPage = () => {
     const navigate = useNavigate();
     const [cart, setCart] = useState<Cart>({
         cartItems: [],
         cartItemsMapper: [],
-        totalPrice: 0
+        totalPrice: 0,
     });
-    const [profileId, setProfileId] = useState<string | null>(null);
+
+    const [totalPrice, setTotalPrice] = useState<number>(0);
 
     useEffect(() => {
         const storedProfileId = localStorage.getItem("profileId");
-        setProfileId(storedProfileId);
 
         const fetchData = async () => {
             try {
@@ -28,19 +39,22 @@ const CartPage = () => {
                     return;
                 }
 
-                const [cartResponse, productResponse] = await Promise.all([
+                const [cartResponse, productResponse, supplierResponse] = await Promise.all([
                     cartService.getCartByProfileId(storedProfileId),
                     productService.getAllProducts(),
+                    productService.getAllSuppliers(),
                 ]);
 
                 const cartData: Cart = cartResponse.result || { cartItems: [], cartItemsMapper: [], totalPrice: 0 };
                 setCart(cartResponse.result!);
 
                 const productsData = productResponse;
+                const suppliersData = supplierResponse;
 
                 const mappedCartItems = (cartData.cartItems ?? []).map((cartItem) => {
                     const product = productsData.find((p) => p.id === cartItem.productId) || {};
                     const variant = product.variants?.find((v) => v.id === cartItem.productVariantId) || {};
+                    const supplier = suppliersData.find((s) => s.id === cartItem.supplierId) || {};
 
                     return {
                         ...cartItem,
@@ -50,23 +64,114 @@ const CartPage = () => {
                         variantColor: variant.color || "",
                         variantSize: variant.size || "",
                         variantPrice: variant.price || 0,
+                        supplierName: supplier.name || "Unknown Supplier",
+                        supplierImage: supplier.imageUrl || "",
+                        quantity: cartItem.quantity || 1,
                     };
                 });
 
                 if (mappedCartItems) {
-                    setCart(prevCart => ({
+                    setCart((prevCart) => ({
                         ...prevCart,
                         cartItemsMapper: mappedCartItems,
                     }));
-                }
 
+                    const initialTotalPrice = mappedCartItems
+                        .filter((item) => item.selected)
+                        .reduce((total, item) => total + item.quantity * item.variantPrice, 0);
+                    setTotalPrice(initialTotalPrice);
+                }
             } catch (error) {
                 toast.error(`Có lỗi xảy ra: ${error instanceof Error ? error.message : String(error)}`);
             }
         };
 
         fetchData();
+
+        setTotalPrice(cart.totalPrice || 0);
     }, [navigate]);
+
+    // Nhóm sản phẩm theo supplier
+    const groupedCartItems = groupCartItemsBySupplier(cart.cartItemsMapper!);
+
+    const handleSelectItem = async (id: number, isSelected: boolean) => {
+        try {
+            await cartService.selectCartItem(id);
+
+            setCart((prevCart) => {
+                const updatedCartItems = (prevCart.cartItemsMapper ?? []).map((item) => {
+                    if (item.id === id) {
+                        return { ...item, selected: isSelected };
+                    }
+                    return item;
+                });
+
+                const updatedTotalPrice = updatedCartItems
+                    .filter((item) => item.selected)
+                    .reduce((total, item) => total + item.quantity * item.variantPrice, 0);
+
+                setTotalPrice(updatedTotalPrice);
+
+                return {
+                    ...prevCart,
+                    cartItemsMapper: updatedCartItems,
+                };
+            });
+        } catch (error) {
+            toast.error(`Có lỗi xảy ra:  ${error instanceof Error ? error.message : String(error)}`);
+        }
+    };
+
+    const handleDeleteItem = async (id: number) => {
+        const response = await cartService.deleteCartItem(id);
+        if (response) {
+            setCart((prevCart) => {
+                const updatedCartItems = (prevCart.cartItemsMapper ?? []).filter((item) => item.id !== id);
+                const updatedTotalPrice = updatedCartItems
+                    .filter((item) => item.selected)
+                    .reduce((total, item) => total + item.quantity * item.variantPrice, 0);
+                setTotalPrice(updatedTotalPrice);
+
+                return {
+                    ...prevCart,
+                    cartItemsMapper: updatedCartItems,
+                };
+            });
+            toast.success("Xóa sản phẩm thành công!");
+        }
+        else {
+            toast.error("Xóa sản phẩm thất bại!");
+        }
+    };
+
+    const handleUpdateQuantity = async (itemId: number, newQuantity: number) => {
+        try {
+            await cartService.updateCartItem(itemId, newQuantity);
+
+            setCart((prevCart) => {
+                const updatedCartItems = (prevCart.cartItemsMapper ?? []).map((item) => {
+                    if (item.id === itemId) {
+                        return { ...item, quantity: newQuantity };
+                    }
+                    return item;
+                });
+
+                const updatedTotalPrice = updatedCartItems
+                    .filter((item) => item.selected)
+                    .reduce((total, item) => total + item.quantity * item.variantPrice, 0);
+                setTotalPrice(updatedTotalPrice);
+
+                return {
+                    ...prevCart,
+                    cartItemsMapper: updatedCartItems,
+                };
+            });
+        } catch (error) {
+            console.error("Lỗi cập nhật giỏ hàng:", error);
+            toast.error("Cập nhật số lượng thất bại!");
+        }
+    };
+
 
     return (
         <div style={{ minWidth: "1200px", margin: "0 auto", padding: "20px 0" }}>
@@ -104,18 +209,39 @@ const CartPage = () => {
                     marginBottom: "10px",
                 }}
             >
-                {cart.cartItemsMapper?.map((cartItem) => (
-                    <CartItem
-                        key={cartItem.id}
-                        productName={cartItem.productName}
-                        productImage={cartItem.productImage}
-                        categoryName={cartItem.categoryName}
-                        variantColor={cartItem.variantColor}
-                        variantSize={cartItem.variantSize}
-                        variantPrice={cartItem.variantPrice}
-                        quantity={cartItem.quantity}
-                        selected={cartItem.selected}
-                    />
+                {Object.entries(groupedCartItems).map(([supplierName, items]) => (
+                    <div key={supplierName} style={{ marginBottom: "20px" }}>
+                        {/* Supplier Header */}
+                        <div
+                            style={{
+                                padding: "10px 20px",
+                                backgroundColor: "#f5f5f5",
+                                fontWeight: "bold",
+                                borderBottom: "1px solid #ddd",
+                            }}
+                        >
+                            {supplierName}
+                        </div>
+
+                        {/* Products */}
+                        {items.map((cartItem) => (
+                            <CartItem
+                                key={cartItem.id}
+                                id={cartItem.id}
+                                productName={cartItem.productName}
+                                productImage={cartItem.productImage}
+                                categoryName={cartItem.categoryName}
+                                variantColor={cartItem.variantColor}
+                                variantSize={cartItem.variantSize}
+                                variantPrice={cartItem.variantPrice}
+                                quantity={cartItem.quantity}
+                                selected={cartItem.selected}
+                                onUpdateQuantity={handleUpdateQuantity}
+                                onSelectItem={(isSelected) => handleSelectItem(isSelected, cartItem.id)}
+                                onDeleteItem={handleDeleteItem}
+                            />
+                        ))}
+                    </div>
                 ))}
             </div>
 
@@ -139,7 +265,7 @@ const CartPage = () => {
                 <div style={{ color: "#888", fontSize: "0.875rem" }}>
                     Tổng tiền:{" "}
                     <span style={{ color: "#ee4d2d", fontWeight: "bold", fontSize: "1rem" }}>
-                        ₫{cart.totalPrice?.toLocaleString("vi-VN")}
+                        ₫{totalPrice.toLocaleString("vi-VN")}
                     </span>
                 </div>
                 <ButtonField>Mua hàng</ButtonField>

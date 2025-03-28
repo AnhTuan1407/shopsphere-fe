@@ -4,6 +4,7 @@ type CartItem = {
     price?: number,
     productId?: number,
     productVariantId?: number,
+    supplierId?: number,
     quantity?: number,
     selected?: boolean,
 }

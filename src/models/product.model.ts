@@ -1,12 +1,14 @@
 import Category from "./category.model";
 import ProductVariants from "./productVariants.model";
+import Supplier from "./supplier.mode";
 
 type Product = {
     id?: number,
     name?: string,
     description?: string,
     imageUrl?: string,
-    category?: Category
+    category?: Category,
+    supplier?: Supplier,
     variants?: Array<ProductVariants>
 }
 

@@ -10,6 +10,11 @@ const productService = {
     getProductById: async (id: number): Promise<Product> => {
         const response = await api.get("/products/" + id);
         return response.data.result;
+    },
+
+    getAllSuppliers: async (): Promise<any[]> => {
+        const response = await api.get("/suppliers");
+        return response.data.result;
     }
 };
 

@@ -1,16 +1,19 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
 import arrow from "../assets/arrow.svg";
 import deliveryIcon from "../assets/delivery-icon.svg";
 import privacyIcon from "../assets/privacy-icon.svg";
 import starRating from "../assets/star-rating.svg";
+import ButtonField from "../components/ButtonField";
 import CardProductVariant from "../components/CardProductVariant";
 import Product from "../models/product.model";
 import ProductVariants from "../models/productVariants.model";
+import cartService from "../services/cart.service";
 import productService from "../services/product.service";
-import ButtonField from "../components/ButtonField";
 
 const DetailProduct = () => {
+    const navigate = useNavigate();
     const [product, setProduct] = useState<Product>({
         variants: [],
     });
@@ -79,6 +82,40 @@ const DetailProduct = () => {
             setQuantity(value);
         }
     };
+
+    const handleAddToCart = () => {
+        const token = localStorage.getItem("token");
+        const profileId = localStorage.getItem("profileId");
+        if (!token || !profileId) {
+            toast.error("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.");
+            navigate("/sign-in");
+        }
+
+        const cartItem = {
+            productId: Number(id),
+            productVariantId: selectedVariant?.id,
+            price: selectedVariant?.price,
+            quantity: quantity,
+            profileId: profileId,
+            supplierId: product.supplier?.id,
+        };
+
+        const addToCart = async () => {
+            try {
+                const response = await cartService.addToCart(cartItem);
+                if (response.code) {
+                    toast.success("Thêm vào giỏ hàng thành công!");
+                } else {
+                    toast.error("Thêm vào giỏ hàng thất bại!");
+                }
+            } catch (error) {
+                console.error(error);
+                toast.error(`Đã xảy ra lỗi khi thêm vào giỏ hàng: ${error instanceof Error ? error.message : String(error)}`);
+            }
+        }
+
+        addToCart();
+    }
 
     return (
         <>
@@ -495,6 +532,8 @@ const DetailProduct = () => {
                                         e.currentTarget.style.backgroundColor = "#feeeea";
                                         e.currentTarget.style.color = "#ee4d2d";
                                     }}
+
+                                    onClick={handleAddToCart}
                                 >
                                     Thêm vào giỏ hàng
                                 </button>
