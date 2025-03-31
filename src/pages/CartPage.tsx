@@ -172,6 +172,15 @@ const CartPage = () => {
         }
     };
 
+    const handleOrder = async () => {
+        const selectedItems = cart.cartItemsMapper?.filter((item) => item.selected);
+        if (selectedItems?.length === 0) {
+            toast.error("Vui lòng chọn ít nhất một sản phẩm để mua.");
+            return;
+        }
+
+        navigate("/order", { state: { selectedItems } });
+    }
 
     return (
         <div style={{ minWidth: "1200px", margin: "0 auto", padding: "20px 0" }}>
@@ -268,7 +277,7 @@ const CartPage = () => {
                         ₫{totalPrice.toLocaleString("vi-VN")}
                     </span>
                 </div>
-                <ButtonField>Mua hàng</ButtonField>
+                <ButtonField onClick={handleOrder}>Mua hàng</ButtonField>
             </div>
         </div>
     );

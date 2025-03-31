@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import shopeeLogo from "../assets/Shopee.svg";
 
-const HeaderCart = () => {
+const HeaderOrder = () => {
     const navigate = useNavigate();
 
     return (
@@ -23,7 +23,8 @@ const HeaderCart = () => {
                     }}>
 
                         {/* Logo */}
-                        <div>
+                        <div style={{
+                        }}>
                             <img src={shopeeLogo} alt="shopee-logo" style={{
                                 height: "2rem",
                                 cursor: "pointer"
@@ -38,7 +39,7 @@ const HeaderCart = () => {
                             borderLeft: ".0625rem solid #ee4d2d",
                             paddingLeft: ".9375rem",
                         }}>
-                            Giỏ hàng
+                            Thanh toán
                         </div>
                     </div>
 
@@ -55,4 +56,4 @@ const HeaderCart = () => {
     );
 }
 
-export default HeaderCart;
+export default HeaderOrder;
