@@ -9,6 +9,8 @@ import CartPage from './pages/CartPage';
 import CartLayout from './layouts/CartLayout';
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import OrderPage from './pages/OrderPage';
+import OrderLayout from './layouts/OrderLayout';
 
 const appRoutes: RouteObject[] = [
   {
@@ -46,6 +48,16 @@ const appRoutes: RouteObject[] = [
       {
         path: "cart/:id",
         element: <CartPage />
+      },
+    ]
+  },
+  {
+    path: "/",
+    element: <OrderLayout />,
+    children: [
+      {
+        path: "order",
+        element: <OrderPage />
       },
     ]
   }

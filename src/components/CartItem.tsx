@@ -85,7 +85,7 @@ const CartItem = ({
 
             {/* Unit Price */}
             <div style={{ flexBasis: "15%", textAlign: "center", fontSize: "14px", color: "#888" }}>
-                ₫{variantPrice}
+                ₫{variantPrice?.toLocaleString("vi-VN")}
             </div>
 
             {/* Quantity */}
@@ -138,7 +138,7 @@ const CartItem = ({
 
             {/* Total Price */}
             <div style={{ flexBasis: "15%", textAlign: "center", fontSize: "14px", color: "#ee4d2d", fontWeight: "bold" }}>
-                ₫{quantityState * (variantPrice || 0)}
+                ₫{(quantityState * (variantPrice || 0)).toLocaleString("vi-VN")}
             </div>
 
             {/* Delete Button */}

@@ -302,7 +302,7 @@ const DetailProduct = () => {
                                     fontSize: "28px",
                                     fontWeight: "500px",
                                 }}>
-                                    {selectedVariant?.price}
+                                    {selectedVariant?.price?.toLocaleString("vi-VN")}
                                 </div>
                             </div>
                             <div style={{
@@ -310,7 +310,7 @@ const DetailProduct = () => {
                                 textDecoration: "line-through",
                                 margin: "0 10px"
                             }}>
-                                ₫{(selectedVariant?.price ?? 0) * 128 / 100};
+                                ₫{((selectedVariant?.price ?? 0) * 128 / 100).toLocaleString("vi-VN")};
                             </div>
                             <div style={{
                                 backgroundColor: "#feeeea",
@@ -355,7 +355,7 @@ const DetailProduct = () => {
                                 }}>
                                     <div>Nhận từ {getDeliveryDateRange()}</div>
                                     <div>Miễn phí vận chuyển</div>
-                                    <div style={{ fontSize: "11px", color: "#757575" }}>Tặng Voucher ₫{(selectedVariant?.price ?? 0) * 30 / 100} nếu đơn giao sau thời gian trên</div>
+                                    <div style={{ fontSize: "11px", color: "#757575" }}>Tặng Voucher ₫{((selectedVariant?.price ?? 0) * 30 / 100).toLocaleString("vi-VN")} nếu đơn giao sau thời gian trên</div>
                                 </div>
                             </div>
                         </div>
