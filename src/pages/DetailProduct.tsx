@@ -11,6 +11,7 @@ import Product from "../models/product.model";
 import ProductVariants from "../models/productVariants.model";
 import cartService from "../services/cart.service";
 import productService from "../services/product.service";
+import { useCart } from "../contexts/CartContext";
 
 const DetailProduct = () => {
     const navigate = useNavigate();
@@ -21,6 +22,8 @@ const DetailProduct = () => {
     const [selectedVariant, setSelectedVariant] = useState(product.variants?.[0]);
     const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
     const [quantity, setQuantity] = useState(1);
+
+    const { cartItemCount, setCartItemCount } = useCart();
 
     const { id } = useParams();
 
@@ -88,7 +91,7 @@ const DetailProduct = () => {
         const profileId = localStorage.getItem("profileId");
         if (!token || !profileId) {
             toast.error("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.");
-            navigate("/sign-in");
+            navigate("/auth/sign-in");
         }
 
         const cartItem = {
@@ -103,7 +106,17 @@ const DetailProduct = () => {
         const addToCart = async () => {
             try {
                 const response = await cartService.addToCart(cartItem);
-                if (response.code) {
+                if (response.code === 1000) {
+                    const profileId = localStorage.getItem("profileId")
+                    if (profileId) {
+                        const cartResponse = await cartService.getCartByProfileId(profileId);
+
+                        if (cartResponse?.result) {
+                            const cart = cartResponse.result as { cartItems: { length: number }[] };
+                            setCartItemCount(cart.cartItems.length);
+                        }
+                    }
+
                     toast.success("Thêm vào giỏ hàng thành công!");
                 } else {
                     toast.error("Thêm vào giỏ hàng thất bại!");

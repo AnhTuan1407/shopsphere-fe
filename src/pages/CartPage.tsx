@@ -35,7 +35,7 @@ const CartPage = () => {
             try {
                 if (!storedProfileId) {
                     toast.error("Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.");
-                    navigate("/sign-in");
+                    navigate("/auth/sign-in");
                     return;
                 }
 
@@ -137,7 +137,6 @@ const CartPage = () => {
                     cartItemsMapper: updatedCartItems,
                 };
             });
-            toast.success("Xóa sản phẩm thành công!");
         }
         else {
             toast.error("Xóa sản phẩm thất bại!");

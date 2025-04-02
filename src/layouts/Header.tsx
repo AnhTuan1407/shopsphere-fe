@@ -3,11 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import shopeeWhiteLogo from "../assets/shopee-white-logo.png";
 import SearchField from "../components/SearchField";
-import Profile from "../models/profile.model";
+import { useCart } from "../contexts/CartContext";
 import authenticationService from "../services/authentication.service";
-import profileService from "../services/profile.service";
 import cartService from "../services/cart.service";
-import Cart from "../models/cart.model";
 
 
 const linkStyle = {
@@ -24,21 +22,21 @@ const HeaderLayout = () => {
     const [userId, setUserId] = useState<string | null>(null);
     const [profileId, setProfileId] = useState<string | null>(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [cartItemCount, setCartItemCount] = useState<number>(0);
+    const { cartItemCount, setCartItemCount } = useCart();
 
-    // Kiểm tra token trong localStorage
     useEffect(() => {
         const token = localStorage.getItem("token");
         const userId = localStorage.getItem("userId");
+        const profileId = localStorage.getItem("profileId");
 
         if (token) {
             const introspectToken = async () => {
                 const response = await authenticationService.introspect(token);
-                console.log("response:", response);
 
                 if (!(response?.result as { valid: boolean })?.valid) {
                     localStorage.clear();
                     setUsername(null);
+                    setProfileId(null);
                     toast.error("Hết hạn phiên đăng nhập, vui lòng đăng nhập lại");
                     navigate("/");
                 }
@@ -49,51 +47,36 @@ const HeaderLayout = () => {
 
         setUserId(userId);
         setToken(token);
+        setProfileId(profileId);
+
         const storedUsername = localStorage.getItem("username");
         if (token && storedUsername) {
             setUsername(storedUsername);
         }
 
-        const fetchProfile = async () => {
-            const profileResponse = await profileService.getProfileByUserId(userId!);
-            if (profileResponse?.result) {
-                const profile: Profile = profileResponse.result;
-                if (profile.id) {
-                    localStorage.setItem("profileId", profile.id);
-                    setProfileId(profile.id);
-                } else {
-                    console.error("Profile ID is undefined");
-                }
-            } else {
-                console.error("Profile not found or invalid response");
-            }
-        }
-
-        const fetchCart = async () => {
-            if (profileId) {
-                const cartResponse = await cartService.getCartByProfileId(profileId!);
-                if (cartResponse?.result) {
-                    const cart: Cart = cartResponse.result;
-                    if (cart && Array.isArray(cart.cartItems)) {
-                        setCartItemCount(cart.cartItems.length);
-                    } else {
-                        console.error("Cart items are not in the expected format");
-                    }
-                } else {
-                    console.error("Cart not found or invalid response");
-                }
-            }
-        }
-
-        fetchProfile();
-        fetchCart();
     }, [navigate]);
+
+    useEffect(() => {
+        if (profileId) {
+            const fetchCart = async () => {
+                const cartResponse = await cartService.getCartByProfileId(profileId);
+                if (cartResponse?.result) {
+                    const cart = cartResponse.result as { cartItems: { length: number }[] };
+                    setCartItemCount(cart.cartItems.length);
+                }
+            }
+            fetchCart();
+        } else {
+            setCartItemCount(0);
+        }
+    }, [profileId]);
 
     const handleLogout = async () => {
         const response = await authenticationService.logout(token ?? "");
         if (response.code == 1000) {
             localStorage.clear();
             setUsername(null);
+            setProfileId(null);
             toast.success("Đăng xuất thành công");
             navigate("/");
         }
@@ -278,7 +261,7 @@ const HeaderLayout = () => {
                                                 }}
                                                 onClick={() => {
                                                     closeDropdown();
-                                                    navigate(`/profile/${profileId}`);
+                                                    navigate(`/profile`);
                                                 }}
                                                 onMouseEnter={(e) => {
                                                     e.currentTarget.style.backgroundColor = "#f5f5f5";
@@ -300,7 +283,7 @@ const HeaderLayout = () => {
                                                 }}
                                                 onClick={() => {
                                                     closeDropdown();
-                                                    navigate(`/orders/${profileId}`);
+                                                    navigate(`/profile/orders`);
                                                 }}
                                                 onMouseEnter={(e) => {
                                                     e.currentTarget.style.backgroundColor = "#f5f5f5";
@@ -354,7 +337,7 @@ const HeaderLayout = () => {
                                         cursor: "pointer",
                                         transition: "background-color 0.3s, color 0.3s",
                                     }}
-                                    onClick={() => navigate("/sign-up")}
+                                    onClick={() => navigate("/auth/sign-up")}
                                     onMouseEnter={(e) => {
                                         e.currentTarget.style.backgroundColor = "rgb(255 200 186)";
                                         e.currentTarget.style.color = "#fff";
@@ -380,7 +363,7 @@ const HeaderLayout = () => {
                                         cursor: "pointer",
                                         transition: "background-color 0.3s, color 0.3s",
                                     }}
-                                    onClick={() => navigate("/sign-in")}
+                                    onClick={() => navigate("/auth/sign-in")}
                                     onMouseEnter={(e) => {
                                         e.currentTarget.style.backgroundColor = "rgb(255 200 186)";
                                         e.currentTarget.style.color = "#fff";

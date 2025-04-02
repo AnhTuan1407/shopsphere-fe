@@ -35,7 +35,7 @@ const OrderPage = () => {
         //Lấy dữ liệu thông tin nhận hàng
         const fetchOrderInformation = async () => {
             try {
-                const response = await orderService.getAllOrderInfo(profileId!);
+                const response = await orderService.getAllOrderInfoByProfileId(profileId!);
 
                 if (response.code === 1000) {
                     const orderInfoList = response.result as OrderInfo[];
