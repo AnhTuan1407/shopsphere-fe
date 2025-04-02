@@ -1,5 +1,4 @@
 import { yupResolver } from "@hookform/resolvers/yup";
-import { jwtDecode } from "jwt-decode";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -8,7 +7,7 @@ import * as yup from "yup";
 import bgAuthShopee from "../assets/bg-shopee-auth.png";
 import ButtonField from "../components/ButtonField";
 import TextField from "../components/TextField";
-import DecodedToken from "../models/decodeToken.model";
+import { useAuth } from "../contexts/AuthContext";
 import authenticationService from "../services/authentication.service";
 
 type SignInFormData = {
@@ -24,9 +23,8 @@ const schema = yup.object().shape({
 const SignIn = () => {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
-
     const navigate = useNavigate();
-
+    const { login } = useAuth();
     const {
         register,
         handleSubmit,
@@ -38,55 +36,30 @@ const SignIn = () => {
     const onSubmit = async (data: SignInFormData) => {
         if (isSubmitting) return;
         setIsSubmitting(true);
-        console.log(data);
 
         try {
             const response = await authenticationService.login(data);
             if (response.token) {
-                localStorage.setItem("token", response.token);
+                await login(response.token);
 
-                try {
-                    const decoded: DecodedToken = await jwtDecode(response.token);
-                    localStorage.setItem("username", decoded.sub);
-                    localStorage.setItem("userId", decoded.userId);
-
-                    const currentTime = Math.floor(Date.now() / 1000);
-                    if (decoded.exp < currentTime) {
-                        console.log("Token đã hết hạn");
-                    } else {
-                        console.log("Token còn hiệu lực");
-                    }
-                } catch (error) {
-                    console.error("Lỗi khi giải mã token:", error);
-                }
-
-                toast.success("Đăng nhập thành công", {
+                toast.success("Đăng nhập thành công!", {
                     position: "top-right",
                     autoClose: 3000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
                 });
-                navigate("/");
 
+                navigate("/");
             }
         } catch (error: any) {
-            toast.error("Đăng nhập thất bại: " + error.response.data.message || "Lỗi không xác định" + ". Vui lòng thử lại!", {
-                position: "top-right",
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-            });
-            console.log("Lỗi khi đăng nhập: ", error);
+            toast.error(
+                "Đăng nhập thất bại: " +
+                (error.response?.data?.message || "Lỗi không xác định") +
+                ". Vui lòng thử lại!",
+                { position: "top-right", autoClose: 3000 }
+            );
         } finally {
             setIsSubmitting(false);
         }
-    }
+    };
 
     return (
         <>

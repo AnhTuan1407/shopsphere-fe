@@ -3,7 +3,7 @@ import ApiResponse from "../models/apiResponse.model";
 import OrderRequest from "../models/orderRequest.model";
 
 const orderService = {
-    getAllOrderInfo: async (id: string): Promise<ApiResponse> => {
+    getAllOrderInfoByProfileId: async (id: string): Promise<ApiResponse> => {
         const response = await api.get(`/orders/address-info/${id}`);
         return response.data;
     },
@@ -18,6 +18,11 @@ const orderService = {
                 },
             }
         );
+        return response.data;
+    },
+
+    getAllOrderByProfileId: async (id: string): Promise<ApiResponse> => {
+        const response = await api.get(`/orders/profile/${id}`);
         return response.data;
     }
 }

@@ -15,6 +15,11 @@ const productService = {
     getAllSuppliers: async (): Promise<any[]> => {
         const response = await api.get("/suppliers");
         return response.data.result;
+    },
+
+    getProductByVariantId: async (id: number): Promise<any> => {
+        const response = await api.get(`/products/by-variant/${id}`);
+        return response.data;
     }
 };
 
