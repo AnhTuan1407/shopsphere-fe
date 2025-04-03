@@ -56,7 +56,7 @@ const OrderPage = () => {
         }
 
         fetchOrderInformation();
-    }, [])
+    }, [profileId])
 
     const handleOpenPopup = () => {
         setIsPopupVisible(true);
@@ -85,7 +85,7 @@ const OrderPage = () => {
     const handleOrder = async (request: OrderRequest) => {
         try {
             const response = await orderService.createOrder(request);
-            if (response.code == 1000) {
+            if (response.code === Number(process.env.REACT_APP_CODE_SUCCESS)) {
                 toast.success("Đặt hàng thành công");
                 navigate("/");
             }
