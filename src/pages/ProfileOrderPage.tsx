@@ -104,7 +104,7 @@ const ProfileOrderPage = () => {
 
     return (
         <>
-            <div>
+            <div style={{width: "960px"}}>
                 {/* Nav bar */}
                 <div style={{
                     display: "flex",
