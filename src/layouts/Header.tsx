@@ -6,6 +6,7 @@ import SearchField from "../components/SearchField";
 import { useCart } from "../contexts/CartContext";
 import authenticationService from "../services/authentication.service";
 import cartService from "../services/cart.service";
+import avatar from "../assets/loppy.jpg";
 
 
 const linkStyle = {
@@ -219,14 +220,28 @@ const HeaderLayout = () => {
                                 onMouseLeave={() => setIsDropdownOpen(false)}
                             >
                                 {/* Username */}
-                                <div
-                                    style={{
-                                        color: "#fff",
-                                        cursor: "pointer",
-                                        fontWeight: "500",
-                                    }}
-                                >
-                                    {username}
+                                <div style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "0.5rem",
+                                    cursor: "pointer",
+                                }}>
+                                    <img src={avatar} alt="avatar" style={{
+                                        borderRadius: "50%",
+                                        width: "2rem",
+                                        height: "2rem",
+                                        objectFit: "cover",
+                                        border: "1px solid #fff",
+                                    }} />
+                                    <div
+                                        style={{
+                                            color: "#fff",
+                                            cursor: "pointer",
+                                            fontWeight: "500",
+                                        }}
+                                    >
+                                        {username}
+                                    </div>
                                 </div>
 
                                 {/* Dropdown menu */}
