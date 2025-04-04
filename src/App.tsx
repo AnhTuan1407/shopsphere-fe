@@ -13,6 +13,7 @@ import ProfileOrderPage from './pages/ProfileOrderPage';
 import ProfilePage from './pages/ProfilePage';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
+import AddressPage from './pages/AddressPage';
 
 const appRoutes: RouteObject[] = [
   {
@@ -68,6 +69,10 @@ const appRoutes: RouteObject[] = [
           {
             path: "/profile/orders",
             element: <ProfileOrderPage />
+          },
+          {
+            path: "/profile/address",
+            element: <AddressPage />
           }
         ],
       },

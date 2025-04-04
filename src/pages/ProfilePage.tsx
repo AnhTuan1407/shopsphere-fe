@@ -92,7 +92,7 @@ const ProfilePage = () => {
                     borderBottom: ".0625rem solid #efefef",
                 }}>
                     <div style={{ fontSize: "1.125rem", color: "#333", fontWeight: "500", lineHeight: "1.5rem" }}>Hồ Sơ Của Tôi</div>
-                    <div style={{ fontSize: "0.875rem", color: "#555", lineHeight: "1.0625rem", marginTop: "0.1875rem" }}>Quản lý thông tin hồ sơ để bảo mật tài khoản</div>
+                    <div style={{ fontSize: "0.75rem", color: "#555", lineHeight: "1.0625rem", marginTop: "0.1875rem" }}>Quản lý thông tin hồ sơ để bảo mật tài khoản</div>
                 </div>
 
                 <div style={{
@@ -142,6 +142,23 @@ const ProfilePage = () => {
                             </div>
                             <div style={styleField}>
                                 {profile?.phoneNumber}
+                            </div>
+                        </div>
+
+                        {/* Button save */}
+                        {/* Username */}
+                        <div style={{ display: "flex", padding: "0 0 1.75rem 1.25rem" }}>
+                            <div style={styleLabel}>
+
+                            </div>
+                            <div style={{
+                                color: "#fff",
+                                backgroundColor: "#ee4d2d",
+                                padding: "0.5rem 1.25rem",
+                                cursor: "pointer",
+                                fontSize: "0.75rem",
+                            }}>
+                                Lưu
                             </div>
                         </div>
                     </div>
