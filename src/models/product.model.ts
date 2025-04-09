@@ -1,6 +1,6 @@
 import Category from "./category.model";
 import ProductVariants from "./productVariants.model";
-import Supplier from "./supplier.mode";
+import Supplier from "./supplier.model";
 
 type Product = {
     id?: number,

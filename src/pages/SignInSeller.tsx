@@ -4,11 +4,11 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import bgAuthShopee from "../assets/bg-shopee-auth.png";
 import ButtonField from "../components/ButtonField";
 import TextField from "../components/TextField";
 import { useAuth } from "../contexts/AuthContext";
 import authenticationService from "../services/authentication.service";
+import sellerSignInBg from "../assets/seller-sign-in-bg.png";
 
 type SignInFormData = {
     username: string,
@@ -20,7 +20,7 @@ const schema = yup.object().shape({
     password: yup.string().required("Mật khẩu không được để trống"),
 })
 
-const SignIn = () => {
+const SignInSeller = () => {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
@@ -47,7 +47,7 @@ const SignIn = () => {
                     autoClose: 3000,
                 });
 
-                navigate("/");
+                navigate("/seller");
             }
         } catch (error: any) {
             toast.error(
@@ -64,28 +64,43 @@ const SignIn = () => {
     return (
         <>
             <div style={{
-                backgroundColor: "#ee4d2d",
+                backgroundColor: "#fff",
                 minHeight: "100vh",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center"
+                justifyContent: "center",
+                boxShadow: "0 4px 10px 0 rgba(0, 0, 0, .6)",
             }}>
                 <div style={{
                     maxWidth: "960px",
                     margin: "0 auto",
                     display: "flex",
                     alignItems: "center",
-                    backgroundImage: `url(${bgAuthShopee})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
                     width: "100%",
                     height: "500px",
-                    borderRadius: "8px"
+                    borderRadius: "8px",
+                    justifyContent: "space-between",
                 }}>
                     <div style={{
-                        flexBasis: "60%"
+                        maxWidth: "400px",
                     }}>
+                        <div style={{
+                            fontSize: "2rem",
+                            color: "#ee4d2d",
+                            lineHeight: "3.5625rem",
 
+                        }}>Bán hàng chuyên nghiệp</div>
+                        <div style={{
+                            fontSize: "1.125rem",
+                            color: "#666",
+                            lineHeight: "1.5rem",
+                            marginBottom: "2rem"
+                        }}>Quản lý shop của bạn một cách hiệu quả hơn trên Shopee với Shopee - Kênh Người bán</div>
+
+                        <img src={sellerSignInBg} alt="sign-in-bg" style={{
+                            width: "100%",
+                            objectFit: "cover",
+                        }} />
                     </div>
 
                     <div style={{
@@ -208,7 +223,7 @@ const SignIn = () => {
                             fontSize: "0.75rem",
                             color: "#666",
                         }}>
-                            Bạn lần đầu đến với shopee? <a onClick={() => navigate("/sign-up")} style={{ color: "#ee4d2d" }}>Đăng ký</a>
+                            Bạn lần đầu đến với shopee? <a onClick={() => navigate("/seller/sign-up")} style={{ color: "#ee4d2d" }}>Đăng ký</a>
                         </div>
                     </div>
                 </div>
@@ -217,4 +232,4 @@ const SignIn = () => {
     );
 };
 
-export default SignIn;
+export default SignInSeller;

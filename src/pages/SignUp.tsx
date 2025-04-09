@@ -182,7 +182,12 @@ const SignUp = () => {
                         <ButtonField width="100%">Đăng ký</ButtonField>
                     </form>
 
-                    <div style={{ marginTop: "10px" }}>
+                    <div style={{
+                        marginTop: "1.5rem",
+                        textAlign: "center",
+                        fontSize: "0.75rem",
+                        color: "#666",
+                    }}>
                         Bạn đã có tài khoản?{" "}
                         <a onClick={() => navigate("/sign-in")} style={{ color: "#ee4d2d", cursor: "pointer" }}>
                             Đăng nhập

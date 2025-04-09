@@ -14,6 +14,13 @@ import ProfilePage from './pages/ProfilePage';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import AddressPage from './pages/AddressPage';
+import SignUpSeller from './pages/SignUpSeller';
+import SignInSeller from './pages/SignInSeller';
+import SellerDashboard from './pages/SellerDashboard';
+import SellerLayout from './layouts/SellerLayout';
+import SellerProductManagement from './pages/SellerProductManagement';
+import SellerCategoryManagement from './pages/SellerCategoryManagement';
+import SellerOrderManagement from './pages/SellerOrderManagement';
 
 const appRoutes: RouteObject[] = [
   {
@@ -25,11 +32,13 @@ const appRoutes: RouteObject[] = [
     ],
   },
   {
-    path: "/auth",
+    path: "/",
     element: <AuthLayout />,
     children: [
       { path: "sign-up", element: <SignUp /> },
       { path: "sign-in", element: <SignIn /> },
+      { path: "seller/sign-in", element: <SignInSeller /> },
+      { path: "seller/sign-up", element: <SignUpSeller /> },
     ],
   },
   {
@@ -74,6 +83,38 @@ const appRoutes: RouteObject[] = [
             path: "/profile/address",
             element: <AddressPage />
           }
+        ],
+      },
+    ],
+  },
+  {
+    path: "/seller",
+    element: <PrivateRoute />,
+    children: [
+      {
+        path: "",
+        element: <SellerLayout />,
+        children: [
+          {
+            index: true,
+            element: <SellerDashboard />
+          },
+          {
+            path: "/seller/products",
+            element: <SellerProductManagement />
+          },
+          {
+            path: "/seller/categories",
+            element: <SellerCategoryManagement />
+          },
+          {
+            path: "/seller/orders",
+            element: <SellerOrderManagement />
+          },
+          {
+            path: "/seller/dashboard",
+            element: <SellerDashboard />
+          },
         ],
       },
     ],
