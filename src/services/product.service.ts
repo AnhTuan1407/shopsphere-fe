@@ -1,5 +1,6 @@
 import api from "./api";
 import Product from "../models/product.model";
+import ApiResponse from "../models/apiResponse.model";
 
 const productService = {
     getAllProducts: async (): Promise<Product[]> => {
@@ -19,6 +20,11 @@ const productService = {
 
     getProductByVariantId: async (id: number): Promise<any> => {
         const response = await api.get(`/products/by-variant/${id}`);
+        return response.data;
+    },
+
+    createProduct: async (request: any): Promise<ApiResponse> => {
+        const response = await api.post("/products", request);
         return response.data;
     }
 };

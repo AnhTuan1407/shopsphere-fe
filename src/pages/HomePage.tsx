@@ -48,7 +48,7 @@ const HomePage = () => {
                     }}>
                         Danh mục
                     </div>
-                    <div style={{ display: "flex" }}>
+                    <div style={{ display: "flex", justifyContent: "space-around" }}>
                         {
                             categories.map(category =>
                                 <CardCategory

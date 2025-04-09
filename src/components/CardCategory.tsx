@@ -14,7 +14,7 @@ const CardCategory = ({
                 style={{
                     border: "1px solid rgba(0, 0, 0, .05)",
                     cursor: "pointer",
-                    width: "110px",
+                    width: "100px",
                     textAlign: "center",
                     padding: "5px",
                     transition: "border - color 0.3s ease-in -out",
@@ -24,7 +24,7 @@ const CardCategory = ({
                 onMouseLeave={(e) => (e.currentTarget.style.border = "1px solid rgba(0, 0, 0, .05)")}
             >
                 <div style={{ display: "flex", justifyContent: "center" }}>
-                    <img src={image_url} alt="danh-muc" style={{ width: "110px", height: "100px" }} />
+                    <img src={image_url} alt="danh-muc" style={{ width: "90px", height: "100px", objectFit: "contain" }} />
                 </div>
 
                 <div

@@ -1,5 +1,5 @@
 type Supplier = {
-    id?: number,
+    id: number,
     name?: string,
     rating?: number,
     imageUrl?: string,
