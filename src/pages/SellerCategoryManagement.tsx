@@ -85,7 +85,7 @@ const SellerCategoryManagement = () => {
     return (
         <>
             <div style={{ paddingLeft: "20px", fontFamily: "Arial, sans-serif" }}>
-                <h2 style={{ marginBottom: "20px" }}>Quản lý danh mục</h2>
+                <div style={{ marginBottom: "20px", textAlign: "left", color: "#333", fontSize: "1.5rem"}}>Quản lý danh mục</div>
 
                 {/* Nút thêm mới */}
                 <button
@@ -93,7 +93,7 @@ const SellerCategoryManagement = () => {
                     style={{
                         marginBottom: "20px",
                         padding: "10px 20px",
-                        backgroundColor: "#4CAF50",
+                        backgroundColor: "#ee4d2d",
                         color: "#fff",
                         border: "none",
                         borderRadius: "4px",
@@ -201,32 +201,33 @@ const SellerCategoryManagement = () => {
 
 
                         <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
-                            <button
+                            <div style={{
+                                color: "#555",
+                                backgroundColor: "#fff",
+                                padding: "0.5rem 0.625rem",
+                                marginRight: "0.125rem",
+                                border: "1px solid rgba(0, 0, 0, .26)",
+                                borderRadius: "0.25rem",
+                                cursor: "pointer"
+                            }}
                                 onClick={handleClosePopup}
-                                style={{
-                                    padding: "8px 16px",
-                                    backgroundColor: "#f44336",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: "4px",
-                                    cursor: "pointer",
-                                }}
                             >
                                 Hủy
-                            </button>
-                            <button
-                                onClick={handleSubmit}
-                                style={{
-                                    padding: "8px 16px",
-                                    backgroundColor: "#4CAF50",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: "4px",
-                                    cursor: "pointer",
-                                }}
+                            </div>
+                            <div style={{
+                                color: "#fff",
+                                backgroundColor: "#ee4d2d",
+                                padding: "0.5rem 0.625rem",
+                                minWidth: "8rem",
+                                border: "1px solid rgba(0, 0, 0, .26)",
+                                borderRadius: "0.25rem",
+                                textAlign: "center",
+                                cursor: "pointer"
+                            }}
+                                onClick={() => handleSubmit}
                             >
                                 Thêm mới
-                            </button>
+                            </div>
                         </div>
                     </div>
                 </div>
