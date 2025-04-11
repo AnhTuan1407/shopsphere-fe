@@ -36,6 +36,25 @@ const CardOrderProfile = ({
 
     })
 
+    const getStatusText = (status: string): string => {
+        switch (status) {
+            case "PENDING":
+                return "Đang chờ xác nhận";
+            case "CONFIRMED":
+                return "Đã xác nhận đơn hàng";
+            case "IN_TRANSIT":
+                return "Đang vận chuyển";
+            case "OUT_FOR_DELIVERY":
+                return "Chờ giao hàng";
+            case "DELIVERED":
+                return "Đã giao hàng thành công";
+            case "CANCELED":
+                return "Đã hủy";
+            default:
+                return "Không xác định";
+        }
+    };
+
     return (
         <>
             <div style={{
@@ -108,7 +127,7 @@ const CardOrderProfile = ({
                     <div>Yêu cầu vào: {new Date(orderDate).toLocaleDateString()}</div>
 
                     <div style={{ color: "#ee4d2d" }}>
-                        {statusOrder}
+                        {getStatusText(statusOrder)}
                     </div>
                 </div>
 

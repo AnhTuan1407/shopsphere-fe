@@ -26,6 +26,11 @@ type Address = {
 }
 
 const orderService = {
+    getAllOrders: async (): Promise<ApiResponse> => {
+        const response = await api.get(`/orders/`);
+        return response.data;
+    },
+
     getAllOrderInfoByProfileId: async (id: string): Promise<ApiResponse> => {
         const response = await api.get(`/orders/address-info/${id}`);
         return response.data;
@@ -33,6 +38,18 @@ const orderService = {
 
     createOrder: async (request: OrderRequest): Promise<ApiResponse> => {
         const response = await api.post(`/orders/`, request,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+        return response.data;
+    },
+
+    updateOrderStatus: async (id: number, status: String,): Promise<ApiResponse> => {
+        const response = await api.put(`/orders/status/${id}`, { status: status },
             {
                 headers: {
                     Authorization: `Bearer ${token}`,

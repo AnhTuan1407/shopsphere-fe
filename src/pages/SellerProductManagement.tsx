@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import productService from "../services/product.service";
-import categoryService from "../services/category.service";
-import supplierService from "../services/supplier.service";
-import Product from "../models/product.model";
-import Category from "../models/category.model";
-import Supplier from "../models/supplier.model";
-import uploadService from "../services/upload.service";
 import { toast } from "react-toastify";
+import Category from "../models/category.model";
+import Product from "../models/product.model";
+import Supplier from "../models/supplier.model";
+import categoryService from "../services/category.service";
+import productService from "../services/product.service";
+import supplierService from "../services/supplier.service";
+import uploadService from "../services/upload.service";
 
 const SellerProductManagement = () => {
     const [products, setProducts] = useState<Product[]>([]);
@@ -128,20 +128,22 @@ const SellerProductManagement = () => {
 
     return (
         <div style={{ padding: "20px", fontFamily: "Arial, sans-serif", backgroundColor: "#f9f9f9", minHeight: "100vh" }}>
-            <h2 style={{ marginBottom: "20px", textAlign: "left", color: "#333" }}>Quản lý sản phẩm</h2>
+            <div style={{ marginBottom: "20px", textAlign: "left", color: "#333", fontSize: "1.5rem" }}>Quản lý sản phẩm</div>
 
             {/* Nút thêm mới sản phẩm */}
             <div style={{ textAlign: "left", marginBottom: "20px" }}>
                 <button
                     onClick={handleOpenPopup}
                     style={{
-                        padding: "10px 20px",
-                        backgroundColor: "#4CAF50",
                         color: "#fff",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        fontSize: "16px",
+                        backgroundColor: "#ee4d2d",
+                        padding: "0.5rem 0.625rem",
+                        minWidth: "8rem",
+                        marginRight: "0.625rem",
+                        border: "1px solid rgba(0, 0, 0, .26)",
+                        borderRadius: "0.25rem",
+                        textAlign: "center",
+                        cursor: "pointer"
                     }}
                 >
                     Thêm mới sản phẩm
@@ -149,71 +151,81 @@ const SellerProductManagement = () => {
             </div>
 
             {/* Danh sách sản phẩm theo danh mục */}
-            {categories.map((category) => (
-                <div
-                    key={category.id}
-                    style={{
-                        marginBottom: "30px",
-                        backgroundColor: "#fff",
-                        borderRadius: "8px",
-                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                        padding: "20px",
-                    }}
-                >
-                    {/* Tiêu đề danh mục */}
-                    <h3
+            {categories
+                .filter((category) =>
+                    products.some((product) => product.category?.id === category.id)
+                ) // Lọc chỉ những danh mục có sản phẩm
+                .map((category) => (
+                    <div
+                        key={category.id}
                         style={{
-                            marginBottom: "20px",
-                            borderBottom: "2px solid #4CAF50",
-                            paddingBottom: "10px",
-                            color: "#333",
+                            marginBottom: "30px",
+                            backgroundColor: "#fff",
+                            borderRadius: "8px",
+                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                            padding: "20px",
                         }}
                     >
-                        {category.name}
-                    </h3>
+                        {/* Tiêu đề danh mục */}
+                        <div
+                            style={{
+                                marginBottom: "20px",
+                                borderBottom: "2px solid #ee4d2d",
+                                paddingBottom: "10px",
+                                color: "#333",
+                                fontSize: "1rem",
+                                fontWeight: "500"
+                            }}
+                        >
+                            {category.name}
+                        </div>
 
-                    {/* Danh sách sản phẩm */}
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
-                        {products
-                            .filter((product) => product.category?.id === category.id)
-                            .map((product) => (
-                                <div
-                                    key={product.id}
-                                    style={{
-                                        border: "1px solid #ddd",
-                                        borderRadius: "8px",
-                                        padding: "10px",
-                                        width: "150px",
-                                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                                        backgroundColor: "#fff",
-                                    }}
-                                >
-                                    <img
-                                        src={product.imageUrl || "https://via.placeholder.com/150"}
-                                        alt={product.name}
+                        {/* Danh sách sản phẩm */}
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
+                            {products
+                                .filter((product) => product.category?.id === category.id)
+                                .map((product) => (
+                                    <div
+                                        key={product.id}
                                         style={{
-                                            width: "100%",
-                                            height: "100px",
-                                            objectFit: "cover",
+                                            border: "1px solid #ddd",
                                             borderRadius: "8px",
-                                            marginBottom: "10px",
+                                            padding: "10px",
+                                            width: "125px",
+                                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                                            backgroundColor: "#fff",
                                         }}
-                                    />
-                                    <h4 style={{
-                                        fontSize: "10px",
-                                        margin: "0",
-                                        color: "#333",
-                                        overflow: "hidden",
-                                        textOverflow: "ellipsis",
-                                        display: "-webkit-box",
-                                        WebkitLineClamp: 2,
-                                        WebkitBoxOrient: "vertical",
-                                    }}>{product.name}</h4>
-                                </div>
-                            ))}
+                                    >
+                                        <img
+                                            src={product.imageUrl || "https://via.placeholder.com/150"}
+                                            alt={product.name}
+                                            style={{
+                                                width: "100%",
+                                                height: "100px",
+                                                objectFit: "contain",
+                                                borderRadius: "8px",
+                                                marginBottom: "10px",
+                                            }}
+                                        />
+                                        <h4
+                                            style={{
+                                                fontSize: "10px",
+                                                margin: "0",
+                                                color: "#333",
+                                                overflow: "hidden",
+                                                textOverflow: "ellipsis",
+                                                display: "-webkit-box",
+                                                WebkitLineClamp: 2,
+                                                WebkitBoxOrient: "vertical",
+                                            }}
+                                        >
+                                            {product.name}
+                                        </h4>
+                                    </div>
+                                ))}
+                        </div>
                     </div>
-                </div>
-            ))}
+                ))}
 
             {/* Popup thêm mới sản phẩm */}
             {isPopupVisible && (
@@ -309,32 +321,33 @@ const SellerProductManagement = () => {
                         )}
 
                         <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
-                            <button
+                            <div style={{
+                                color: "#555",
+                                backgroundColor: "#fff",
+                                padding: "0.5rem 0.625rem",
+                                marginRight: "0.125rem",
+                                border: "1px solid rgba(0, 0, 0, .26)",
+                                borderRadius: "0.25rem",
+                                cursor: "pointer"
+                            }}
                                 onClick={handleClosePopup}
-                                style={{
-                                    padding: "8px 16px",
-                                    backgroundColor: "#f44336",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: "4px",
-                                    cursor: "pointer",
-                                }}
                             >
                                 Hủy
-                            </button>
-                            <button
-                                onClick={handleSubmit}
-                                style={{
-                                    padding: "8px 16px",
-                                    backgroundColor: "#4CAF50",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: "4px",
-                                    cursor: "pointer",
-                                }}
+                            </div>
+                            <div style={{
+                                color: "#fff",
+                                backgroundColor: "#ee4d2d",
+                                padding: "0.5rem 0.625rem",
+                                minWidth: "8rem",
+                                border: "1px solid rgba(0, 0, 0, .26)",
+                                borderRadius: "0.25rem",
+                                textAlign: "center",
+                                cursor: "pointer"
+                            }}
+                                onClick={() => handleSubmit}
                             >
                                 Thêm mới
-                            </button>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -26,7 +26,12 @@ const productService = {
     createProduct: async (request: any): Promise<ApiResponse> => {
         const response = await api.post("/products", request);
         return response.data;
-    }
+    },
+
+    getVariantById: async (id: number): Promise<any> => {
+        const response = await api.get(`/product-variants/${id}`);
+        return response.data;
+    },
 };
 
 export default productService;
