@@ -5,7 +5,8 @@ type Profile = {
     username?: string,
     password?: string,
     email?: string,
-    phoneNumber?: string
+    phoneNumber?: string,
+    userId?:string,
 }
 
 export default Profile;

@@ -84,8 +84,8 @@ const HomePage = () => {
 
                     <div style={{
                         display: "flex",
-                        rowGap: "1.5rem",
-                        columnGap: "1.5rem",
+                        rowGap: "1rem",
+                        columnGap: "1rem",
                     }}>
                         {
                             products.map(product =>
