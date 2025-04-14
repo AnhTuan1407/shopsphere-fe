@@ -36,6 +36,11 @@ const profileService = {
         });
         return response.data;
     },
+
+    getUserById: async (id: string): Promise<ApiResponse> => {
+        const response = await api.get(`/identity/users/${id}`);
+        return response.data;
+    },
 }
 
 export default profileService;

@@ -7,11 +7,12 @@ import privacyIcon from "../assets/privacy-icon.svg";
 import starRating from "../assets/star-rating.svg";
 import ButtonField from "../components/ButtonField";
 import CardProductVariant from "../components/CardProductVariant";
+import { useCart } from "../contexts/CartContext";
 import Product from "../models/product.model";
 import ProductVariants from "../models/productVariants.model";
 import cartService from "../services/cart.service";
 import productService from "../services/product.service";
-import { useCart } from "../contexts/CartContext";
+import ReviewPage from "../pages/ReviewPage";
 
 const DetailProduct = () => {
     const navigate = useNavigate();
@@ -91,7 +92,8 @@ const DetailProduct = () => {
         const profileId = localStorage.getItem("profileId");
         if (!token || !profileId) {
             toast.error("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.");
-            navigate("/auth/sign-in");
+            navigate("/sign-in");
+            return;
         }
 
         const cartItem = {
@@ -142,7 +144,8 @@ const DetailProduct = () => {
                 <div style={{
                     display: "flex",
                     alignItems: "center",
-                    fontSize: "0.75rem"
+                    fontSize: "0.75rem",
+                    boxShadow: "0 1px 1px 0 rgba(0, 0, 0, .05)",
                 }}>
                     <a href="/">Shopee</a>
                     <span><img src={arrow} alt="arrow" style={{ margin: "0 5px", height: "10px", width: "10px" }} /></span>
@@ -154,7 +157,8 @@ const DetailProduct = () => {
                 {/* Product Information */}
                 <div style={{
                     display: "flex",
-                    backgroundColor: "#fff"
+                    backgroundColor: "#fff",
+                    padding: "0.625rem"
                 }}>
                     <div style={{
                         flexBasis: "40%",
@@ -163,7 +167,6 @@ const DetailProduct = () => {
                         <img src={product.imageUrl} alt="img-product" style={{
                             objectFit: "contain",
                             width: "400px",
-
                         }} />
                     </div>
 
@@ -558,6 +561,9 @@ const DetailProduct = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Review */}
+                {product?.id && <ReviewPage productId={product.id} />}
             </div >
         </>
     );

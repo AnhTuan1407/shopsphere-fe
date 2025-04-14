@@ -38,7 +38,6 @@ const CardProduct = ({
                 style={{
                     width: "200px",
                     border: "1px solid #ddd",
-                    borderRadius: "8px",
                     overflow: "hidden",
                     boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
                     textAlign: "center",
@@ -52,11 +51,13 @@ const CardProduct = ({
 
                 onClick={() => navigate(`/products/${id}`)}
             >
+
                 <img
                     src={imageUrl}
                     alt={name}
-                    style={{ width: "100%", height: "150px", objectFit: "cover", borderRadius: "8px" }}
+                    style={{ width: "100%", objectFit: "cover" }}
                 />
+
                 <div
                     style={{
                         fontSize: "12px",
