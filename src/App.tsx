@@ -21,6 +21,8 @@ import SellerLayout from './layouts/SellerLayout';
 import SellerProductManagement from './pages/SellerProductManagement';
 import SellerCategoryManagement from './pages/SellerCategoryManagement';
 import SellerOrderManagement from './pages/SellerOrderManagement';
+import VoucherPage from './pages/VoucherPage';
+import VoucherWallet from './pages/VoucherWallet';
 
 const appRoutes: RouteObject[] = [
   {
@@ -29,6 +31,7 @@ const appRoutes: RouteObject[] = [
     children: [
       { index: true, element: <HomePage /> },
       { path: "products/:id", element: <DetailProduct /> },
+      { path: "vouchers", element: <VoucherPage /> },
     ],
   },
   {
@@ -82,7 +85,11 @@ const appRoutes: RouteObject[] = [
           {
             path: "/profile/address",
             element: <AddressPage />
-          }
+          },
+          {
+            path: "/profile/voucher-wallet",
+            element: <VoucherWallet />
+          },
         ],
       },
     ],

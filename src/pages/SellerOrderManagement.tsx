@@ -276,56 +276,65 @@ const SupplierOrderManagement = () => {
                         </div>
 
                         <div style={{ flex: "1", display: "flex", justifyContent: "flex-end", fontSize: "0.75rem" }}>
-                            <div style={{
-                                color: "#fff",
-                                backgroundColor: "#ee4d2d",
-                                padding: "0.5rem 0.625rem",
-                                minWidth: "8rem",
-                                marginRight: "0.625rem",
-                                border: "1px solid rgba(0, 0, 0, .26)",
-                                borderRadius: "0.25rem",
-                                textAlign: "center",
-                                cursor: "pointer"
-                            }}
-                                onClick={() => handleUpdateStatus(order.id, "CONFIRMED")}
+                            {order.statusOrder === "PENDING" && (
+                                <>
+                                    <div
+                                        style={{
+                                            color: "#fff",
+                                            backgroundColor: "#ee4d2d",
+                                            padding: "0.5rem 0.625rem",
+                                            minWidth: "8rem",
+                                            marginRight: "0.625rem",
+                                            border: "1px solid rgba(0, 0, 0, .26)",
+                                            borderRadius: "0.25rem",
+                                            textAlign: "center",
+                                            cursor: "pointer",
+                                        }}
+                                        onClick={() => handleUpdateStatus(order.id, "CONFIRMED")}
+                                    >
+                                        Xác nhận
+                                    </div>
+                                    <div
+                                        style={{
+                                            color: "#555",
+                                            backgroundColor: "#fff",
+                                            padding: "0.5rem 0.625rem",
+                                            marginRight: "0.625rem",
+                                            border: "1px solid rgba(0, 0, 0, .26)",
+                                            borderRadius: "0.25rem",
+                                            cursor: "pointer",
+                                        }}
+                                        onClick={() => handleUpdateStatus(order.id, "CANCELED")}
+                                    >
+                                        Hủy đơn hàng
+                                    </div>
+                                </>
+                            )}
+                            <div
+                                style={{
+                                    color: "#555",
+                                    backgroundColor: "#fff",
+                                    padding: "0.5rem 0.625rem",
+                                    marginRight: "0.625rem",
+                                    border: "1px solid rgba(0, 0, 0, .26)",
+                                    borderRadius: "0.25rem",
+                                    cursor: "pointer",
+                                }}
                             >
-                                Xác nhận
-                            </div>
-                            <div style={{
-                                color: "#555",
-                                backgroundColor: "#fff",
-                                padding: "0.5rem 0.625rem",
-                                marginRight: "0.625rem",
-                                border: "1px solid rgba(0, 0, 0, .26)",
-                                borderRadius: "0.25rem",
-                                cursor: "pointer"
-                            }}>
                                 Xem chi tiết đơn hàng
                             </div>
-                            <div style={{
-                                color: "#555",
-                                backgroundColor: "#fff",
-                                padding: "0.5rem 0.625rem",
-                                marginRight: "0.625rem",
-                                border: "1px solid rgba(0, 0, 0, .26)",
-                                borderRadius: "0.25rem",
-                                cursor: "pointer"
-                            }}
-                                onClick={() => handleUpdateStatus(order.id, "CANCELED")}
+                            <div
+                                style={{
+                                    color: "#555",
+                                    backgroundColor: "#fff",
+                                    padding: "0.5rem 0.625rem",
+                                    marginRight: "0.625rem",
+                                    border: "1px solid rgba(0, 0, 0, .26)",
+                                    borderRadius: "0.25rem",
+                                    cursor: "pointer",
+                                }}
                             >
-                                Hủy đơn hàng
-                            </div>
-                            <div style={{
-                                color: "#555",
-                                backgroundColor: "#fff",
-                                padding: "0.5rem 0.625rem",
-                                marginRight: "0.625rem",
-                                border: "1px solid rgba(0, 0, 0, .26)",
-                                borderRadius: "0.25rem",
-                                cursor: "pointer"
-                            }}>
                                 Liên hệ người mua
-
                             </div>
                         </div>
                     </div>

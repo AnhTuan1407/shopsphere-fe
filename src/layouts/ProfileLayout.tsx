@@ -45,8 +45,8 @@ const ProfileLayout = () => {
                                     label: <Link to="/profile/address">Địa chỉ</Link>,
                                 },
                                 {
-                                    key: "/profile/settings",
-                                    label: <Link to="/profile/settings">Cài đặt</Link>,
+                                    key: "/profile/voucher-wallet",
+                                    label: <Link to="/profile/voucher-wallet">Kho voucher</Link>,
                                 },
                             ]}
                         />

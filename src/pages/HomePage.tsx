@@ -1,15 +1,18 @@
 import { useEffect, useState } from "react";
-import CardProduct from "../components/CardProduct";
+import { useNavigate } from "react-router-dom";
 import CardCategory from "../components/CardCategory";
+import CardProduct from "../components/CardProduct";
+import Category from "../models/category.model";
+import Product from "../models/product.model";
 import categoryService from "../services/category.service";
 import productService from "../services/product.service";
-import Product from "../models/product.model";
-import Category from "../models/category.model";
 
 const HomePage = () => {
 
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -36,6 +39,115 @@ const HomePage = () => {
 
     return (
         <>
+            <div style={{
+                backgroundColor: "#fff",
+                width: "100%",
+                paddingTop: "10px",
+                paddingBottom: "10px",
+            }}>
+                <div style={{
+                    width: "1200px",
+                    margin: "0 auto",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    height: "235px",
+                }}>
+                    {/* Banner */}
+                    <div style={{
+                        flex: "2",
+                        height: "100%",
+                        overflow: "hidden",
+                    }}>
+                        <img
+                            src="/assets/banner/banner-1.jpg"
+                            alt="banner-1"
+                            style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                            }}
+                        />
+                    </div>
+
+                    <div style={{
+                        flex: "1",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        height: "100%",
+                        marginLeft: "5px"
+                    }}>
+                        <img
+                            src="/assets/banner/banner-2.jpg"
+                            alt="banner-2"
+                            style={{
+                                width: "100%",
+                                height: "calc(50% - 3px)",
+                                objectFit: "cover",
+                                marginBottom: "3px",
+                            }}
+                        />
+                        <img
+                            src="/assets/banner/banner-3.png"
+                            alt="banner-3"
+                            style={{
+                                width: "100%",
+                                height: "calc(50% - 3px)",
+                                objectFit: "cover",
+                            }}
+                        />
+                    </div>
+                </div>
+
+                {/* Navbar */}
+                <div style={{
+                    backgroundColor: "#fff",
+                    display: "flex",
+                    alignItems: "center",
+                    width: "1200px",
+                    margin: "0 auto",
+                    justifyContent: "space-around",
+                    marginTop: "1rem"
+                }}>
+                    {[
+                        { src: "/assets/btn-nav-home/choice.png", label: "Hàng Chọn Giá Hời" },
+                        { src: "/assets/btn-nav-home/voucher.png", label: "Mã Giảm Giá", onClick: () => navigate("/vouchers") },
+                        { src: "/assets/btn-nav-home/shopee-style.png", label: "Shopee Style Voucher 30%" },
+                        { src: "/assets/btn-nav-home/voucher-xtra.png", label: "Voucher Giảm Đến 1 Triệu" },
+                        { src: "/assets/btn-nav-home/national.png", label: "Hàng Quốc Tế" },
+                        { src: "/assets/btn-nav-home/service.png", label: "Nạp Thẻ, Dịch Vụ & Hóa Đơn" },
+                    ].map((btn, index) => (
+                        <div key={index} style={{
+                            flex: "1",
+                            textAlign: "center",
+                        }}>
+                            <div
+                                style={{
+                                    width: "3rem",
+                                    height: "3rem",
+                                    display: "flex",
+                                    margin: "0 auto",
+                                    cursor: "pointer",
+                                    transition: "transform 0.3s ease",
+                                }}
+                                onClick={btn.onClick}
+                                onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.1)"}
+                                onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+                            >
+                                <img src={btn.src} alt={`btn-${btn.label}`} style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                }} />
+                            </div>
+                            <div>
+                                {btn.label}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
             <div style={{ height: 'calc(100vh-306px)', padding: '2rem 4rem', overflowY: 'auto' }}>
                 <div style={{
                     backgroundColor: "#fff",
