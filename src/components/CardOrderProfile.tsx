@@ -8,6 +8,9 @@ type CardOrderProfile = {
     statusOrder: string;
     totalPrice: number;
     orderItems: Array<OrderItem>;
+    shippingFee: number;
+    voucherId: number;
+    note: string;
 };
 
 type OrderItem = {
@@ -30,6 +33,9 @@ const CardOrderProfile = ({
     statusOrder,
     totalPrice,
     orderItems,
+    shippingFee,
+    voucherId,
+    note,
 }: CardOrderProfile) => {
     const [showReviewForm, setShowReviewForm] = useState<boolean>(false);
     const [selectedProduct, setSelectedProduct] = useState<OrderItem | null>(null);
@@ -290,33 +296,64 @@ const CardOrderProfile = ({
             </div>
 
             <div style={{ backgroundColor: "#fff" }}>
-                <div
-                    style={{
-                        fontSize: "0.75rem",
-                        display: "flex",
-                        alignItems: "center",
-                        padding: "1.5rem 1.5rem 0.75rem",
-                        justifyContent: "flex-end",
-                    }}
-                >
-                    Thành tiền:
-                    <span
+                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                    <div
                         style={{
-                            color: "#ee4d2d",
-                            fontSize: "0.875rem",
-                            marginLeft: "0.25rem",
+                            fontSize: "0.75rem",
+                            display: "flex",
+                            alignItems: "center",
+                            padding: "1.5rem 1.5rem 0.75rem",
+                            justifyContent: "flex-end",
                         }}
                     >
-                        ₫
-                    </span>
-                    <span
+                        Phí vận chuyển:
+                        <span
+                            style={{
+                                color: "#ee4d2d",
+                                fontSize: "0.875rem",
+                                marginLeft: "0.25rem",
+                            }}
+                        >
+                            ₫
+                        </span>
+                        <span
+                            style={{
+                                color: "#ee4d2d",
+                                fontSize: "1.25rem",
+                            }}
+                        >
+                            {shippingFee.toLocaleString("vi-VN")}
+                        </span>
+                    </div>
+
+                    <div
                         style={{
-                            color: "#ee4d2d",
-                            fontSize: "1.25rem",
+                            fontSize: "0.75rem",
+                            display: "flex",
+                            alignItems: "center",
+                            padding: "1.5rem 1.5rem 0.75rem",
+                            justifyContent: "flex-end",
                         }}
                     >
-                        {totalPrice.toLocaleString("vi-VN")}
-                    </span>
+                        Thành tiền:
+                        <span
+                            style={{
+                                color: "#ee4d2d",
+                                fontSize: "0.875rem",
+                                marginLeft: "0.25rem",
+                            }}
+                        >
+                            ₫
+                        </span>
+                        <span
+                            style={{
+                                color: "#ee4d2d",
+                                fontSize: "1.25rem",
+                            }}
+                        >
+                            {(totalPrice + shippingFee).toLocaleString("vi-VN")}
+                        </span>
+                    </div>
                 </div>
 
                 <div

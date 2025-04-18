@@ -120,8 +120,33 @@ const SignIn = () => {
                                 {errors.password && <span style={{ color: "red", fontWeight: "400" }}>{errors.password.message}</span>}
                             </div>
 
-                            {/* Submit Button */}
-                            <ButtonField width="100%">Đăng nhập</ButtonField>
+                            {/* Submit Button or Loading */}
+                            {isSubmitting ? (
+                                <div style={{ textAlign: "center", marginTop: "2rem" }}>
+                                    <div
+                                        className="spinner"
+                                        style={{
+                                            display: "inline-block",
+                                            width: "50px",
+                                            height: "50px",
+                                            border: "5px solid rgba(0, 0, 0, 0.1)",
+                                            borderTop: "5px solid #333",
+                                            borderRadius: "50%",
+                                            animation: "spin 1s linear infinite",
+                                        }}
+                                    ></div>
+                                    <style>
+                                        {`
+                                        @keyframes spin {
+                                            0% { transform: rotate(0deg); }
+                                            100% { transform: rotate(360deg); }
+                                        }
+                                        `}
+                                    </style>
+                                </div>
+                            ) : (
+                                <ButtonField width="100%">Đăng nhập</ButtonField>
+                            )}
                         </form>
 
                         <div style={{
@@ -211,8 +236,8 @@ const SignIn = () => {
                             Bạn lần đầu đến với shopee? <a onClick={() => navigate("/sign-up")} style={{ color: "#ee4d2d" }}>Đăng ký</a>
                         </div>
                     </div>
-                </div>
-            </div>
+                </div >
+            </div >
         </>
     );
 };

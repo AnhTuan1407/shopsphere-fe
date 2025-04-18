@@ -20,7 +20,10 @@ type OrdersResponse = {
     orderDate: Date,
     statusOrder: string,
     totalPrice: number,
-    orderItems: Array<OrderItem>
+    orderItems: Array<OrderItem>,
+    shippingFee: number;
+    voucherId: number;
+    note: string;
 }
 
 type OrderItem = {
@@ -104,7 +107,7 @@ const ProfileOrderPage = () => {
 
     return (
         <>
-            <div style={{width: "960px"}}>
+            <div style={{ width: "960px" }}>
                 {/* Nav bar */}
                 <div style={{
                     display: "flex",
@@ -171,6 +174,9 @@ const ProfileOrderPage = () => {
                                             statusOrder={order.statusOrder}
                                             totalPrice={order.totalPrice}
                                             orderItems={order.orderItems}
+                                            shippingFee={order.shippingFee}
+                                            voucherId={order.voucherId}
+                                            note={order.note}
                                         />
                                     </div>
                                 ))}

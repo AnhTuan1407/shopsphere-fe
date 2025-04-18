@@ -13,6 +13,9 @@ type OrderRequest = {
     profileId: string;
     orderInfoId: number;
     products: Product[];
+    shippingFee?: number;
+    voucherId?: number,
+    note?: string,
 };
 
 export default OrderRequest;

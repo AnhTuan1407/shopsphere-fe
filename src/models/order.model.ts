@@ -16,7 +16,10 @@ type Order = {
         }
     ],
     orderInfo: OrderInfo,
-    paymentMethod: string
+    paymentMethod: string,
+    shippingFee?: number;
+    voucherId?: number,
+    note?: string,
 }
 
 export default Order;

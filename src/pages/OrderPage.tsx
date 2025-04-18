@@ -4,6 +4,8 @@ import { toast } from "react-toastify";
 import OrderInfo from "../models/orderInfo.model";
 import OrderRequest from "../models/orderRequest.model";
 import orderService from "../services/order.service";
+import Voucher from "../models/voucher.model";
+import voucherService from "../services/voucher.service";
 
 const OrderPage = () => {
 
@@ -21,12 +23,26 @@ const OrderPage = () => {
         variantSize?: string;
     }
 
+    type UserVoucher = {
+        id: number,
+        voucher: Voucher,
+        profileId: string,
+        supplierId?: number,
+        claimedAt: Date,
+        isUse: boolean
+    }
+
     const selectedItems: SelectedItem[] = location.state?.selectedItems || [];
 
     const [orderInformation, setOrderInformation] = useState<OrderInfo[]>();
     const [defaultAddress, setDefaultAddress] = useState<OrderInfo>();
-    const [isPopupVisible, setIsPopupVisible] = useState(false);
+    const [isPopupAddressVisible, setIsPopupAddressVisible] = useState(false);
+    const [isPopupVoucherVisible, setIsPopupVoucherVisible] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [claimedVouchers, setClaimedVouchers] = useState<any[]>([]);
+    const [selectedVoucher, setSelectedVoucher] = useState<Voucher>();
+    const [shippingFee, setShippingFee] = useState<number>(40000);
+    const [note, setNote] = useState<string>("");
     const profileId = localStorage.getItem("profileId");
 
     let totalPrice = 0;
@@ -58,12 +74,46 @@ const OrderPage = () => {
         fetchOrderInformation();
     }, [profileId])
 
-    const handleOpenPopup = () => {
-        setIsPopupVisible(true);
+    const handleOpenPopupAddress = () => {
+        setIsPopupAddressVisible(true);
     };
 
-    const handleClosePopup = () => {
-        setIsPopupVisible(false);
+    const handleClosePopupAddress = () => {
+        setIsPopupAddressVisible(false);
+    };
+
+    const handleOpenPopupVoucher = async () => {
+        try {
+            const response = await voucherService.getClaimedVouchersByUser(profileId!);
+            if (response.code === 1000) {
+                setClaimedVouchers((response.result as UserVoucher[]).filter((item: any) => item.voucher.voucherType === "SHIPPING"));
+                setIsPopupVoucherVisible(true);
+            } else {
+                toast.error(`Có lỗi xảy ra: ${response.message}`);
+            }
+        } catch (error) {
+            toast.error(`Có lỗi xảy ra: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    };
+
+    const handleClosePopupVoucher = () => {
+        setIsPopupVoucherVisible(false);
+    };
+
+    const handleSelectVoucher = (voucher: any) => {
+        setSelectedVoucher(voucher);
+
+        let discount = 0;
+
+        if (voucher.discountPercent) {
+            discount = (40000 * voucher.discountPercent) / 100;
+        } else if (voucher.discountAmount) {
+            discount = voucher.discountAmount;
+        }
+
+        setShippingFee(Math.max(0, 40000 - discount));
+
+        setIsPopupVoucherVisible(false);
     };
 
     // Chọn địa chỉ nhận hàng mặc định
@@ -95,6 +145,26 @@ const OrderPage = () => {
             toast.error(`Có lỗi xảy ra: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
+
+    const handleSubmitOrder = () => {
+        const orderRequest: OrderRequest = {
+            profileId: profileId!,
+            orderInfoId: defaultAddress?.id!,
+            products: selectedItems.map((item) => ({
+                productVariantId: item.productVariantId,
+                quantity: item.quantity,
+                pricePerUnit: item.variantPrice,
+                price: item.price,
+                variantPrice: item.variantPrice,
+                productImage: item.productImage,
+                productName: item.productName,
+            })),
+            shippingFee,
+            voucherId: selectedVoucher?.id,
+            note,
+        };
+        handleOrder(orderRequest);
+    };
 
     if (loading) {
         return (
@@ -183,7 +253,7 @@ const OrderPage = () => {
                                     cursor: "pointer",
                                     color: "#05a",
                                 }}
-                                    onClick={handleOpenPopup}
+                                    onClick={handleOpenPopupAddress}
                                 >
                                     Thay đổi
                                 </div>
@@ -197,6 +267,7 @@ const OrderPage = () => {
                     backgroundColor: "#fff",
                     marginTop: "10px",
                     padding: "24px 30px 16px 30px",
+                    borderBottom: "1px solid #5555",
                 }}>
 
                     {/* Tiêu đề */}
@@ -315,6 +386,154 @@ const OrderPage = () => {
                     </div>
                 </div>
 
+                {/* Vouchers & Phương thức vận chuyển */}
+                <div style={{
+                    backgroundColor: "#fff",
+                    display: "flex",
+                    alignItems: "center",
+                    borderBottom: "1px solid #5555",
+                    borderBottomStyle: "dashed",
+                }}>
+                    <div style={{ flexBasis: "40%" }}>
+
+                    </div>
+                    <div style={{ flexBasis: "60%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1.5rem" }}>
+                        <div style={{ display: "flex", alignItems: "center" }}>
+                            <div style={{ display: "flex", alignItems: "center", margin: "0.5rem", cursor: "pointer" }}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#ee4d2d" className="bi bi-ticket-perforated" viewBox="0 0 16 16">
+                                    <path d="M4 4.85v.9h1v-.9zm7 0v.9h1v-.9zm-7 1.8v.9h1v-.9zm7 0v.9h1v-.9zm-7 1.8v.9h1v-.9zm7 0v.9h1v-.9zm-7 1.8v.9h1v-.9zm7 0v.9h1v-.9z" />
+                                    <path d="M1.5 3A1.5 1.5 0 0 0 0 4.5V6a.5.5 0 0 0 .5.5 1.5 1.5 0 1 1 0 3 .5.5 0 0 0-.5.5v1.5A1.5 1.5 0 0 0 1.5 13h13a1.5 1.5 0 0 0 1.5-1.5V10a.5.5 0 0 0-.5-.5 1.5 1.5 0 0 1 0-3A.5.5 0 0 0 16 6V4.5A1.5 1.5 0 0 0 14.5 3zM1 4.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 .5.5v1.05a2.5 2.5 0 0 0 0 4.9v1.05a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-1.05a2.5 2.5 0 0 0 0-4.9z" />
+                                </svg>
+                            </div>
+                            <div>Voucher của shop</div>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", color: "#05a" }}>
+                            <div style={{ display: "flex", alignItems: "center", margin: "0.5rem", cursor: "pointer" }}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#ee4d2d" className="bi bi-stickies" viewBox="0 0 16 16">
+                                    <path d="M1.5 0A1.5 1.5 0 0 0 0 1.5V13a1 1 0 0 0 1 1V1.5a.5.5 0 0 1 .5-.5H14a1 1 0 0 0-1-1z" />
+                                    <path d="M3.5 2A1.5 1.5 0 0 0 2 3.5v11A1.5 1.5 0 0 0 3.5 16h6.086a1.5 1.5 0 0 0 1.06-.44l4.915-4.914A1.5 1.5 0 0 0 16 9.586V3.5A1.5 1.5 0 0 0 14.5 2zM3 3.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 .5.5V9h-4.5A1.5 1.5 0 0 0 9 10.5V15H3.5a.5.5 0 0 1-.5-.5zm7 11.293V10.5a.5.5 0 0 1 .5-.5h4.293z" />
+                                </svg>
+                            </div>
+                            <div style={{ textTransform: "capitalize", cursor: "pointer" }}
+                                onClick={handleOpenPopupVoucher}
+                            >
+                                Chọn Voucher khác
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style={{
+                    backgroundColor: "#fff",
+                    display: "flex",
+                    alignItems: "center",
+                    borderBottom: "1px dashed #5555",
+                }}>
+                    {/* Note */}
+                    <div style={{
+                        display: "flex",
+                        alignItems: "center",
+                        padding: "25px",
+                        fontSize: "0.875rem",
+                        flex: "1",
+                    }}>
+                        <div style={{ marginRight: "0.625rem" }}>Lời nhắn: </div>
+                        <div style={{
+                            alignItems: "center",
+                            border: "1px solid rgba(0, 0, 0, .14)",
+                            borderRadius: "2px",
+                            boxShadow: "inset 0 2px 0 0 rgba(0, 0, 0, .02)",
+                            boxSizing: "border-box",
+                            display: "flex",
+                            height: "40px",
+                            transition: "border-color .3s ease-in-out, box-shadow .3s ease-in-out, background-color .3s ease-in-out",
+                            width: "100%"
+                        }}>
+                            <input type="text"
+                                placeholder="Lưu ý cho người bán..."
+                                style={{
+                                    outline: "none",
+                                    backgroundColor: "transparent",
+                                    padding: "10px",
+                                    border: "0",
+                                    width: "100%"
+                                }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Phương thức vận chuyển */}
+                    <div style={{
+                        flexBasis: "60%",
+                        fontSize: "0.75rem",
+                        borderRight: "1px dashed #5555",
+                        borderLeft: "1px dashed #5555",
+                    }}>
+                        <div style={{
+                            padding: "25px",
+                            borderBottom: "1px dashed #5555",
+                        }}>
+                            <div style={{
+                                display: "flex",
+                                alignItems: "center",
+                            }}>
+                                <div style={{ flex: "2", maxWidth: "150px" }}>
+                                    Phương thức vận chuyển:
+                                </div>
+                                <div style={{ flex: "1", display: "flex", justifyContent: "flex-start" }}>
+                                    Nhanh
+                                </div>
+                                <div style={{ display: "flex", flex: "1", justifyContent: "center", color: "#05a", cursor: "pointer" }}>
+                                    Thay đổi
+                                </div>
+                                <div style={{
+                                    display: "flex", flex: "1", justifyContent: "flex-end"
+                                }}>
+                                    ₫{shippingFee.toLocaleString("vi-VN")}
+                                </div>
+                            </div>
+                            <div style={{
+                                marginTop: "0.625rem",
+                                display: "grid",
+                                gridColumnStart: "1",
+                                gridColumnEnd: "5",
+                            }}>
+                                <div style={{
+                                    gridColumnStart: "1",
+                                    gridColumnEnd: "2",
+                                    minWidth: "150px"
+                                }}>
+
+                                </div>
+                                <div style={{
+                                    gridColumnStart: "2",
+                                    gridColumnEnd: "5",
+                                    fontSize: "0.625rem"
+                                }}>
+                                    <div style={{ display: "flex", alignItems: "center" }}>
+                                        <div>
+                                            <img src="/assets/icon/delivery.svg" alt="icon-delivery" />
+                                        </div>
+                                        <div style={{ color: "#26aa99" }}>
+                                            Đảm bảo nhận hàng từ 20 Tháng 4 - 22 Tháng 4
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style={{ color: "rgba(0, 0, 0, .4)" }}>
+                                            Nhận Voucher trị giá ₫15.000 nếu đơn hàng được giao đến bạn sau ngày 22 Tháng 4 2025.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style={{
+                            padding: "10px 25px"
+                        }}>
+                            Được đồng kiểm
+                        </div>
+                    </div>
+                </div>
+
                 {/* Xác nhận đơn hàng */}
                 <div style={{
                     display: "flex",
@@ -397,7 +616,7 @@ const OrderPage = () => {
                         justifyContent: "flex-end",
                         padding: "0 1.6rem 0 0.625rem"
                     }}>
-                        ₫25.000
+                        ₫{shippingFee.toLocaleString("vi-VN")}
                     </div>
                     <h3 style={{ gridColumnStart: "2", gridColumnEnd: "3", color: "rgba(0, 0, 0, .54)", fontSize: "0.75rem", fontWeight: "400" }}>Tổng cộng voucher giảm giá</h3>
                     <div style={{
@@ -408,7 +627,7 @@ const OrderPage = () => {
                         padding: "0 1.6rem 0 0.625rem",
                         color: "#ee4d2d",
                     }}>
-                        -₫0
+                        -₫{selectedVoucher ? (selectedVoucher.discountAmount!).toLocaleString("vi-VN") : 0}
                     </div>
                     <h3 style={{ gridColumnStart: "2", gridColumnEnd: "3", color: "rgba(0, 0, 0, .54)", fontSize: "0.75rem", fontWeight: "400" }}>Tổng thanh toán</h3>
                     <div style={{
@@ -419,7 +638,7 @@ const OrderPage = () => {
                         padding: "0 1.6rem 0 0.625rem",
                         color: "#ee4d2d"
                     }}>
-                        <span style={{ fontSize: "1rem", }}>₫</span> {(totalPrice + 25000).toLocaleString("vi-VN")}
+                        <span style={{ fontSize: "1rem", }}>₫</span> {(totalPrice + shippingFee).toLocaleString("vi-VN")}
                     </div>
                     <h3 style={{ gridColumnStart: "3", gridColumnEnd: "3", color: "rgba(0, 0, 0, .54)", fontSize: "0.75rem", fontWeight: "400" }}>Đã bao gồm thuế</h3>
                 </div>
@@ -463,7 +682,7 @@ const OrderPage = () => {
                                     productName: item.productName
                                 })),
                             };
-                            handleOrder(orderRequest);
+                            handleSubmitOrder();
                         }}
                     >
                         Đặt hàng
@@ -472,7 +691,7 @@ const OrderPage = () => {
             </div >
 
             {/* Popup thông tin nhận hàng */}
-            {isPopupVisible && (
+            {isPopupAddressVisible && (
                 <div
                     style={{
                         position: "fixed",
@@ -576,7 +795,7 @@ const OrderPage = () => {
                                 marginRight: "10px"
                             }}>
                                 <button
-                                    onClick={handleClosePopup}
+                                    onClick={handleClosePopupAddress}
                                     style={{
                                         backgroundColor: "#fff",
                                         color: "#333",
@@ -592,7 +811,7 @@ const OrderPage = () => {
 
                             <div>
                                 <button
-                                    onClick={handleClosePopup}
+                                    onClick={handleClosePopupAddress}
                                     style={{
                                         backgroundColor: "#ee4d2d",
                                         color: "#fff",
@@ -608,6 +827,98 @@ const OrderPage = () => {
                         </div>
                     </div >
                 </div >
+            )}
+
+            {/* Popup chọn voucher */}
+            {isPopupVoucherVisible && (
+                <div
+                    style={{
+                        position: "fixed",
+                        top: "0",
+                        left: "0",
+                        width: "100%",
+                        height: "100%",
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        zIndex: "1000",
+                    }}
+                >
+                    <div
+                        style={{
+                            backgroundColor: "#fff",
+                            borderRadius: "0.1875rem",
+                            padding: "20px",
+                            width: "400px",
+                            maxHeight: "80%",
+                            overflowY: "auto",
+                        }}
+                    >
+                        <div style={{ marginBottom: "10px", paddingBottom: "10px", textAlign: "left", borderBottom: "1px solid #f0f0f0" }}>
+                            Chọn Voucher
+                        </div>
+                        <ul style={{ listStyle: "none", padding: "0" }}>
+                            {claimedVouchers.map((item) => (
+                                <li
+                                    key={item.voucher.id}
+                                    style={{
+                                        padding: "10px",
+                                        borderBottom: "1px solid #f0f0f0",
+                                        cursor: "pointer",
+                                        display: "flex",
+                                        alignItems: "center",
+                                    }}
+                                    onClick={() => handleSelectVoucher(item.voucher)}
+                                >
+                                    <div
+                                        style={{
+                                            backgroundColor: "rgb(38, 170, 153)",
+                                            width: "50px",
+                                            height: "50px",
+                                            display: "flex",
+                                            justifyContent: "center",
+                                            alignItems: "center",
+                                            borderRadius: "5px",
+                                            marginRight: "10px",
+                                        }}
+                                    >
+                                        <img
+                                            src="/assets/voucher/bg-voucher-shipping.png"
+                                            alt="voucher"
+                                            style={{ width: "30px", height: "30px" }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <div style={{ fontWeight: "500", color: "#333" }}>{item.voucher.title}</div>
+                                        <div style={{ fontSize: "0.875rem", color: "#555" }}>{item.voucher.description}</div>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                        <div
+                            style={{
+                                marginTop: "20px",
+                                display: "flex",
+                                justifyContent: "flex-end",
+                            }}
+                        >
+                            <button
+                                onClick={handleClosePopupVoucher}
+                                style={{
+                                    backgroundColor: "#fff",
+                                    color: "#333",
+                                    border: "1px solid #f0f0f0",
+                                    borderRadius: "4px",
+                                    padding: "10px 20px",
+                                    cursor: "pointer",
+                                }}
+                            >
+                                Đóng
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </>
     )
