@@ -60,7 +60,7 @@ const HomePage = () => {
                         overflow: "hidden",
                     }}>
                         <img
-                            src="/assets/banner/banner-1.jpg"
+                            src="/assets/banners/banner-1.jpg"
                             alt="banner-1"
                             style={{
                                 width: "100%",
@@ -79,7 +79,7 @@ const HomePage = () => {
                         marginLeft: "5px"
                     }}>
                         <img
-                            src="/assets/banner/banner-2.jpg"
+                            src="/assets/banners/banner-2.jpg"
                             alt="banner-2"
                             style={{
                                 width: "100%",
@@ -89,7 +89,7 @@ const HomePage = () => {
                             }}
                         />
                         <img
-                            src="/assets/banner/banner-3.png"
+                            src="/assets/banners/banner-3.png"
                             alt="banner-3"
                             style={{
                                 width: "100%",
@@ -165,6 +165,7 @@ const HomePage = () => {
                             categories.map(category =>
                                 <CardCategory
                                     key={category.id}
+                                    id={category.id}
                                     name={category.name}
                                     image_url={category.image_url}
                                 />

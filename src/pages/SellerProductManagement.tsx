@@ -11,7 +11,7 @@ import uploadService from "../services/upload.service";
 const SellerProductManagement = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
-    const [supplierId, setSupplierId] = useState<string | null>(null);
+    const [supplierId, setSupplierId] = useState<number | null>(null);
     const [isPopupVisible, setIsPopupVisible] = useState(false);
     const [newProduct, setNewProduct] = useState({
         name: "",
@@ -22,30 +22,37 @@ const SellerProductManagement = () => {
 
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string>("");
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchSupplierAndProducts = async () => {
-            const userId = localStorage.getItem("userId");
-            if (!userId) {
-                alert("Không tìm thấy userId trong localStorage");
-                return;
-            }
-
-            // Lấy supplierId từ userId
-            const supplierResponse = await supplierService.getSupplierByUserId(userId);
-            if (supplierResponse.code === Number(process.env.REACT_APP_CODE_SUCCESS)) {
-                if (supplierResponse.result as Supplier) {
-                    setSupplierId(String((supplierResponse.result as Supplier).id));
+            try {
+                const userId = localStorage.getItem("userId");
+                if (!userId) {
+                    alert("Không tìm thấy userId trong localStorage");
+                    return;
                 }
 
-                // Lấy danh sách sản phẩm của supplier
-                const productsResponse = await productService.getAllProducts();
-                const supplierProducts = productsResponse.filter(
-                    (product) => product.supplier?.id === (supplierResponse.result as Supplier).id
-                );
-                setProducts(supplierProducts);
-            } else {
-                alert("Không tìm thấy supplier tương ứng");
+                // Lấy supplierId từ userId
+                const supplierResponse = await supplierService.getSupplierByUserId(userId);
+                if (supplierResponse.code === Number(process.env.REACT_APP_CODE_SUCCESS)) {
+                    if (supplierResponse.result as Supplier) {
+                        setSupplierId((supplierResponse.result as Supplier).id);
+                    }
+
+                    // Lấy danh sách sản phẩm của supplier
+                    const productsResponse = await productService.getAllProducts();
+                    const supplierProducts = productsResponse.filter(
+                        (product) => product.supplier?.id === (supplierResponse.result as Supplier).id
+                    );
+                    setProducts(supplierProducts);
+                } else {
+                    alert("Không tìm thấy supplier tương ứng");
+                }
+            } catch (error) {
+                console.error("Có lỗi xảy ra:", error);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -109,7 +116,7 @@ const SellerProductManagement = () => {
         formData.append("name", newProduct.name);
         formData.append("description", newProduct.description);
         formData.append("categoryId", newProduct.categoryId);
-        formData.append("supplierId", supplierId);
+        formData.append("supplierId", supplierId.toString());
         if (uploadedUrl) {
             formData.append("imageUrl", uploadedUrl);
         }
@@ -125,6 +132,14 @@ const SellerProductManagement = () => {
             toast.error("Thêm mới sản phẩm thất bại!");
         }
     };
+
+    if (loading) {
+        return (
+            <div style={{ textAlign: "center", marginTop: "50px" }}>
+                <p>Đang tải dữ liệu...</p>
+            </div>
+        );
+    }
 
     return (
         <div style={{ padding: "20px", fontFamily: "Arial, sans-serif", backgroundColor: "#f9f9f9", minHeight: "100vh" }}>

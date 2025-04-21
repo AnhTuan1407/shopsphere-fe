@@ -13,7 +13,22 @@ const voucherService = {
     claimedVoucher: async (request: any): Promise<ApiResponse> => {
         const response = await api.post("/sales/vouchers/claim", request);
         return response.data;
-    }
+    },
+
+    getAllVoucherBySupplierId: async (id: number): Promise<ApiResponse> => {
+        const response = await api.get(`/sales/vouchers/supplier/${id}`);
+        return response.data;
+    },
+
+    createVoucher: async (request: any): Promise<ApiResponse> => {
+        const response = await api.post(`/sales/vouchers`, request);
+        return response.data;
+    },
+
+    getAllVoucherType: async (): Promise<ApiResponse> => {
+        const response = await api.get(`/sales/vouchers/types`);
+        return response.data;
+    },
 }
 
 export default voucherService;

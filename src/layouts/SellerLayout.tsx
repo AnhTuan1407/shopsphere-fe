@@ -1,4 +1,4 @@
-import { AppstoreOutlined, BarChartOutlined, PieChartOutlined, ShoppingCartOutlined } from "@ant-design/icons";
+import { AppstoreOutlined, BarChartOutlined, BookOutlined, PieChartOutlined, ShoppingCartOutlined, SnippetsOutlined } from "@ant-design/icons";
 import { Button, Layout, Menu } from "antd";
 import { useState } from "react";
 import shopeeLogo from "../assets/shopee-white-logo.png";
@@ -30,7 +30,7 @@ const SellerLayout = () => {
                     <Menu.Item key="/seller/dashboard" icon={<PieChartOutlined />}>
                         Dashboard
                     </Menu.Item>
-                    <Menu.Item key="/seller/categories" icon={<BarChartOutlined />}>
+                    <Menu.Item key="/seller/categories" icon={<BookOutlined />}>
                         Danh mục
                     </Menu.Item>
                     <Menu.Item key="/seller/products" icon={<AppstoreOutlined />}>
@@ -38,6 +38,9 @@ const SellerLayout = () => {
                     </Menu.Item>
                     <Menu.Item key="/seller/orders" icon={<ShoppingCartOutlined />}>
                         Đơn hàng
+                    </Menu.Item>
+                    <Menu.Item key="/seller/vouchers" icon={<SnippetsOutlined />}>
+                        Mã giảm giá
                     </Menu.Item>
                 </Menu>
             </Sider>

@@ -32,6 +32,11 @@ const productService = {
         const response = await api.get(`/product-variants/${id}`);
         return response.data;
     },
+
+    getProductByCategoryId: async (id: number): Promise<ApiResponse> => {
+        const response = await api.get(`/products/by-category?id=${id}`);
+        return response.data;
+    },
 };
 
 export default productService;

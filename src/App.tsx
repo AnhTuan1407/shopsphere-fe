@@ -23,6 +23,10 @@ import SellerCategoryManagement from './pages/SellerCategoryManagement';
 import SellerOrderManagement from './pages/SellerOrderManagement';
 import VoucherPage from './pages/VoucherPage';
 import VoucherWallet from './pages/VoucherWallet';
+import DetailCategory from './pages/DetailCategory';
+import DetailSupplier from './pages/DetailSupplier';
+import SupplierLayout from './layouts/SupplierLayout';
+import SellerVoucherManagement from './pages/SellerVoucherManagement';
 
 const appRoutes: RouteObject[] = [
   {
@@ -31,6 +35,7 @@ const appRoutes: RouteObject[] = [
     children: [
       { index: true, element: <HomePage /> },
       { path: "products/:id", element: <DetailProduct /> },
+      { path: "category/:id", element: <DetailCategory /> },
       { path: "vouchers", element: <VoucherPage /> },
     ],
   },
@@ -63,6 +68,16 @@ const appRoutes: RouteObject[] = [
         path: "",
         element: <OrderLayout />,
         children: [{ path: "", element: <OrderPage /> }],
+      },
+    ],
+  },
+  {
+    path: "/supplier/:id",
+    children: [
+      {
+        path: "",
+        element: <SupplierLayout />,
+        children: [{ path: "", element: <DetailSupplier /> }],
       },
     ],
   },
@@ -121,6 +136,10 @@ const appRoutes: RouteObject[] = [
           {
             path: "/seller/dashboard",
             element: <SellerDashboard />
+          },
+          {
+            path: "/seller/vouchers",
+            element: <SellerVoucherManagement />
           },
         ],
       },

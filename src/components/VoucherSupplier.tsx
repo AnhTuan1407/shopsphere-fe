@@ -6,10 +6,35 @@ type VoucherProps = {
         code: string;
         title: string;
         description: string;
+        startDate: Date,
+        endDate: Date,
     };
 };
 
 const VoucherSupplier: React.FC<VoucherProps> = ({ voucher }) => {
+
+    const currentDate = new Date();
+    const startDate = new Date(voucher.startDate);
+    const endDate = new Date(voucher.endDate);
+
+    // Tính toán trạng thái và thông tin hạn sử dụng
+    let expirationText = "";
+    let buttonText = "";
+    let isDisabled = false;
+
+    if (endDate < currentDate) {
+        expirationText = "Đã quá hạn";
+        buttonText = "Đã quá hạn";
+        isDisabled = true;
+    } else if (startDate > currentDate) {
+        const daysUntilStart = Math.ceil((startDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
+        expirationText = `Có hiệu lực sau: ${daysUntilStart} ngày`;
+        buttonText = "Dùng sau";
+    } else {
+        expirationText = `Hạn sử dụng: ${endDate.toLocaleDateString("vi-VN")}`;
+        buttonText = "Dùng ngay";
+    }
+
     return (
         <div
             style={{
@@ -47,7 +72,7 @@ const VoucherSupplier: React.FC<VoucherProps> = ({ voucher }) => {
                     }}
                 ></div>
 
-                {[...Array(7)].map((_, index) => (
+                {[...Array(6)].map((_, index) => (
                     <React.Fragment key={index}>
                         {/* Hình tròn */}
                         <div
@@ -118,9 +143,13 @@ const VoucherSupplier: React.FC<VoucherProps> = ({ voucher }) => {
                 <div>
                     <h3 style={{ margin: "0 0 0.5rem", color: "#333" }}>{voucher.title}</h3>
                     <p style={{ margin: "0 0 1rem", color: "#555" }}>{voucher.description}</p>
+                    {/* Hiển thị hạn sử dụng */}
+                    <p style={{ margin: "0", color: "#999", fontSize: "0.875rem" }}>
+                        HSD: {new Date(voucher.startDate).toLocaleDateString()} - {new Date(voucher.endDate).toLocaleDateString()}
+                    </p>
                 </div>
 
-                <div
+                {/* <div
                     style={{
                         color: "#fff",
                         fontSize: "1.25rem",
@@ -135,7 +164,7 @@ const VoucherSupplier: React.FC<VoucherProps> = ({ voucher }) => {
                     }}
                 >
                     Lưu
-                </div>
+                </div> */}
 
                 <div
                     style={{

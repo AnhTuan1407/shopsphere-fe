@@ -16,7 +16,7 @@ const linkStyle = {
     transition: "color 0.3s",
 };
 
-const HeaderLayout = () => {
+const HeaderSupplier = () => {
     const navigate = useNavigate();
     const [username, setUsername] = useState<string | null>(null);
     const [token, setToken] = useState<string | null>(null);
@@ -110,9 +110,9 @@ const HeaderLayout = () => {
     return (
         <>
             <div style={{
-                backgroundColor: "#ee4d2d",
+                backgroundColor: "#d0011b",
                 boxShadow: "0 1px 1px 0 rgba(0, 0, 0, .05)",
-                height: "6.5rem",
+                height: "6rem",
                 display: "flex",
                 alignItems: "center",
                 paddingBottom: "0.625rem"
@@ -120,13 +120,11 @@ const HeaderLayout = () => {
                 <div style={{
                     width: "1200px",
                     margin: "0 auto",
-                    paddingBottom: "10px"
                 }}>
                     <div style={{
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "space-between",
-                        paddingTop: "10px"
+                        justifyContent: "space-between"
                     }}>
 
                         {/* Nav - 1 */}
@@ -242,15 +240,40 @@ const HeaderLayout = () => {
                         justifyContent: "space-between",
                         alignItems: "center",
                     }}>
-                        {/* Logo */}
-                        <div>
-                            <a href="/">
-                                <img src={shopeeWhiteLogo} alt="shopee-logo" style={{
-                                    height: "4rem",
-                                    width: "10.5rem",
+                        <div style={{ width: "200px", height: "50px", marginTop: "5px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                            {/* SVG Logo */}
+                            <svg
+                                viewBox="0 6.5 48 48"
+                                x="0"
+                                y="0"
+                                fill="#fff"
+                                className="shopee-svg-icon icon-shopee-logo--official-shop"
+                                style={{
+                                    width: "50px",
+                                    height: "50px",
+                                    cursor: "pointer"
+                                }}
+                                onClick={() => navigate("/")}
+                            >
+                                <path d="M44.4,11.5C44.4,11.5,44.4,11.5,44.4,11.5l-9.9,0C34.3,5.1,29.7,0,24,0S13.7,5.1,13.5,11.5H3.6v0c-0.5,0-0.9,0.4-0.9,0.9c0,0,0,0,0,0.1h0l1.4,30.9c0,0.1,0,0.2,0,0.3c0,0,0,0,0,0.1l0,0.1l0,0c0.2,2.2,1.8,3.9,3.9,4l0,0h31.4c0,0,0,0,0,0c0,0,0,0,0,0h0.1l0,0c2.2-0.1,3.9-1.8,4.1-4l0,0l0,0c0,0,0,0,0-0.1c0-0.1,0-0.1,0-0.2l1.5-31h0c0,0,0,0,0,0C45.3,11.9,44.9,11.5,44.4,11.5z M24,2.8c4.1,0,7.5,3.9,7.6,8.7H16.4C16.5,6.7,19.9,2.8,24,2.8z M31.9,35.8c-0.3,2.3-1.7,4.2-3.9,5.1c-1.2,0.5-2.8,0.8-4.1,0.7c-2-0.1-3.9-0.6-5.6-1.4c-0.6-0.3-1.6-1-2.3-1.5c-0.2-0.1-0.2-0.3-0.1-0.5c0.2-0.2,0.8-1.2,0.9-1.3c0.1-0.2,0.4-0.2,0.6-0.1c0,0,0.2,0.2,0.3,0.2c1.7,1.3,3.8,2.3,6.2,2.4c3,0,5.2-1.4,5.6-3.5c0.4-2.3-1.4-4.3-4.9-5.4c-1.1-0.3-3.9-1.5-4.5-1.8c-2.5-1.4-3.6-3.3-3.4-5.6c0.2-3.2,3.2-5.6,7-5.6c1.8,0,3.5,0.4,5,1c0.6,0.2,1.6,0.8,2,1.1c0.3,0.2,0.2,0.4,0.1,0.6c-0.2,0.2-0.6,0.9-0.8,1.2c-0.1,0.2-0.3,0.2-0.5,0.1c-1.9-1.3-3.9-1.7-5.7-1.8c-2.6,0.1-4.6,1.6-4.7,3.7c0,1.9,1.4,3.3,4.5,4.3C29.9,29.6,32.3,32,31.9,35.8z"></path>
+                            </svg>
+                            <div style={{
+                                width: "25px",
+                                height: "50px",
+                                borderRight: "2px solid #fff",
+                            }}>
+                            </div>
+                            {/* Image Logo */}
+                            <img
+                                src="/assets/shopee-mall.png"
+                                alt="shopee-logo"
+                                style={{
+                                    width: "100%",
+                                    height: "70px",
                                     objectFit: "contain",
-                                }} />
-                            </a>
+                                    cursor: "pointer"
+                                }}
+                            />
                         </div>
 
                         {/* Search Bar */}
@@ -259,45 +282,45 @@ const HeaderLayout = () => {
                             marginLeft: "1rem",
                             marginRight: "1rem",
                         }}>
-                            <SearchField placeholder="Tìm tên sản phẩm, thương hiệu, và tên shop" width="100%" height="2.25rem" />
-                            <div style={{
-                                marginTop: "0.5rem",
+                            <form style={{
+                                display: "flex",
+                                alignItems: "center",
+                                borderRadius: "2px",
+                                backgroundColor: "#fff",
+                                width: "100%",
+                                height: "2.25rem",
+                                padding: "0.1875rem",
+                                boxShadow: "0 1px 1px rgba(0, 0, 0, 0.1)",
                             }}>
-                                <ul style={{
-                                    listStyle: "none",
-                                    display: "flex",
-                                    gap: "1rem",
+                                <input
+                                    placeholder="Tìm kiếm trong shop này"
+                                    style={{
+                                        flex: 1,
+                                        border: "none",
+                                        outline: "none",
+                                        padding: "0.5rem",
+                                        fontSize: "14px",
+                                    }}
+                                />
+                                <button style={{
+                                    backgroundColor: "#d0011b",
                                     color: "#fff",
-                                    fontSize: "10px",
-                                    padding: "0",
-                                    margin: "0",
+                                    border: "none",
+                                    padding: "0 1rem",
+                                    cursor: "pointer",
+                                    fontSize: "14px",
+                                    height: "100%",
+                                    borderRadius: "2px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    gap: "0.5rem",
                                 }}>
-                                    <li>
-                                        <a href="" style={linkStyle}>Áo BabyTee</a>
-                                    </li>
-                                    <li>
-                                        <a href="" style={linkStyle}>Dép nam</a>
-                                    </li>
-                                    <li>
-                                        <a href="" style={linkStyle}>Bánh tráng phơi sương</a>
-                                    </li>
-                                    <li>
-                                        <a href="" style={linkStyle}>Áo khoác</a>
-                                    </li>
-                                    <li>
-                                        <a href="" style={linkStyle}>Gấu bông</a>
-                                    </li>
-                                    <li>
-                                        <a href="" style={linkStyle}>Quần jean ống rộng</a>
-                                    </li>
-                                    <li>
-                                        <a href="" style={linkStyle}>Kẹp tóc</a>
-                                    </li>
-                                    <li>
-                                        <a href="" style={linkStyle}>Ốp lưng iphone</a>
-                                    </li>
-                                </ul>
-                            </div>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-search" viewBox="0 0 16 16">
+                                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
+                                    </svg>
+                                </button>
+                            </form>
                         </div>
 
                         {/* Cart and Auth Buttons */}
@@ -327,9 +350,9 @@ const HeaderLayout = () => {
                                             top: "-5px",
                                             right: "-5px",
                                             backgroundColor: "#fff",
-                                            color: "#ee4d2d",
+                                            color: "#d0011b",
                                             borderRadius: "50%",
-                                            border: "#ee4d2d",
+                                            border: "#d0011b",
                                             width: "20px",
                                             height: "20px",
                                             display: "flex",
@@ -447,7 +470,7 @@ const HeaderLayout = () => {
                                                     style={{
                                                         padding: "10px 20px",
                                                         cursor: "pointer",
-                                                        color: "#ee4d2d",
+                                                        color: "#d0011b",
                                                         transition: "background-color 0.3s, color 0.3s",
                                                     }}
                                                     onClick={() => {
@@ -456,11 +479,11 @@ const HeaderLayout = () => {
                                                     }}
                                                     onMouseEnter={(e) => {
                                                         e.currentTarget.style.backgroundColor = "#f5f5f5";
-                                                        e.currentTarget.style.color = "#d43720";
+                                                        e.currentTarget.style.color = "#d0011b";
                                                     }}
                                                     onMouseLeave={(e) => {
                                                         e.currentTarget.style.backgroundColor = "#fff";
-                                                        e.currentTarget.style.color = "#ee4d2d";
+                                                        e.currentTarget.style.color = "#d0011b";
                                                     }}
                                                 >
                                                     Đăng xuất
@@ -475,8 +498,8 @@ const HeaderLayout = () => {
                                     <button
                                         style={{
                                             backgroundColor: "#fff",
-                                            color: "#ee4d2d",
-                                            border: "1px solid #ee4d2d",
+                                            color: "#d0011b",
+                                            border: "1px solid #d0011b",
                                             padding: "0.5rem 1rem",
                                             borderRadius: "4px",
                                             fontSize: "14px",
@@ -491,7 +514,7 @@ const HeaderLayout = () => {
                                         }}
                                         onMouseLeave={(e) => {
                                             e.currentTarget.style.backgroundColor = "#fff";
-                                            e.currentTarget.style.color = "#ee4d2d";
+                                            e.currentTarget.style.color = "#d0011b";
                                         }}
                                     >
                                         Đăng ký
@@ -501,8 +524,8 @@ const HeaderLayout = () => {
                                     <button
                                         style={{
                                             backgroundColor: "#fff",
-                                            color: "#ee4d2d",
-                                            border: "1px solid #ee4d2d",
+                                            color: "#d0011b",
+                                            border: "1px solid #d0011b",
                                             padding: "0.5rem 1rem",
                                             borderRadius: "4px",
                                             fontSize: "14px",
@@ -517,7 +540,7 @@ const HeaderLayout = () => {
                                         }}
                                         onMouseLeave={(e) => {
                                             e.currentTarget.style.backgroundColor = "#fff";
-                                            e.currentTarget.style.color = "#ee4d2d";
+                                            e.currentTarget.style.color = "#d0011b";
                                         }}
                                     >
                                         Đăng nhập
@@ -532,4 +555,4 @@ const HeaderLayout = () => {
     );
 };
 
-export default HeaderLayout;
+export default HeaderSupplier;

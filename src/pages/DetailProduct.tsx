@@ -10,9 +10,9 @@ import CardProductVariant from "../components/CardProductVariant";
 import { useCart } from "../contexts/CartContext";
 import Product from "../models/product.model";
 import ProductVariants from "../models/productVariants.model";
+import ReviewPage from "../pages/ReviewPage";
 import cartService from "../services/cart.service";
 import productService from "../services/product.service";
-import ReviewPage from "../pages/ReviewPage";
 
 const DetailProduct = () => {
     const navigate = useNavigate();
@@ -371,7 +371,9 @@ const DetailProduct = () => {
                                 }}>
                                     <div>Nhận từ {getDeliveryDateRange()}</div>
                                     <div>Miễn phí vận chuyển</div>
-                                    <div style={{ fontSize: "11px", color: "#757575" }}>Tặng Voucher ₫{((selectedVariant?.price ?? 0) * 30 / 100).toLocaleString("vi-VN")} nếu đơn giao sau thời gian trên</div>
+                                    <div style={{ fontSize: "11px", color: "#757575" }}>
+                                        Tặng Voucher ₫{((selectedVariant?.price ?? 0) * 30 / 100).toLocaleString("vi-VN")} nếu đơn giao sau thời gian trên
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -558,6 +560,137 @@ const DetailProduct = () => {
                             <div>
                                 <ButtonField>Mua ngay</ButtonField>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Supplier information */}
+                <div
+                    style={{
+                        backgroundColor: "#fff",
+                        borderRadius: ".125rem",
+                        boxShadow: "0 1px 1px 0 rgba(0, 0, 0, .05)",
+                        marginTop: "0.9375rem",
+                        overflow: "hidden",
+                        padding: "0.625rem",
+                        display: "flex",
+                        alignItems: "center"
+                    }}
+                >
+                    <div style={{
+                        padding: "20px 20px 25px",
+                        display: "flex",
+                        alignItems: "center",
+                        maxWidth: "440px",
+                    }}>
+                        <div style={{
+                            height: "80px",
+                            width: "80px",
+                            border: "1px solid rgba(0, 0, 0, .09)",
+                            borderRadius: "50%",
+                            marginRight: "1.25rem",
+                            cursor: "pointer",
+                        }}
+                            onClick={() => navigate("/supplier/4")}
+                        >
+                            <img src="/assets/supplier-avatar.jpg" alt="avatar-supplier" style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover"
+                            }} />
+                        </div>
+                        <div style={{
+                            paddingRight: "20px",
+                            borderRight: "1px solid rgba(0, 0, 0, .09)"
+                        }}>
+                            <div style={{ fontSize: "1rem", fontWeight: "500", textDecoration: "none" }}>
+                                <a href="/supplier/4" style={{ color: "#333" }}>ZIYOU</a>
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", marginTop: "0.5rem" }}>
+                                <div style={{
+                                    padding: "5px 10px",
+                                    marginRight: "10px",
+                                    backgroundColor: "rgba(208, 1, 27, .08)",
+                                    border: "1px solid #d0011b",
+                                    color: "#d0011b",
+                                    fontWeight: "500",
+                                    cursor: "pointer",
+                                }}>
+                                    <span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" className="bi bi-chat-right-text-fill" viewBox="0 0 16 16">
+                                            <path d="M16 2a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h9.586a1 1 0 0 1 .707.293l2.853 2.853a.5.5 0 0 0 .854-.353zM3.5 3h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1 0-1m0 2.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1 0-1m0 2.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1 0-1" />
+                                        </svg>
+                                    </span> Chat ngay
+                                </div>
+                                <div style={{
+                                    padding: "5px 10px",
+                                    marginRight: "10px",
+                                    backgroundColor: "#fff",
+                                    border: "1px solid rgba(0, 0, 0, .09)",
+                                    color: "#555555",
+                                    cursor: "pointer",
+                                }}>
+                                    <span style={{ marginRight: "5px" }}>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" className="bi bi-shop" viewBox="0 0 16 16">
+                                            <path d="M2.97 1.35A1 1 0 0 1 3.73 1h8.54a1 1 0 0 1 .76.35l2.609 3.044A1.5 1.5 0 0 1 16 5.37v.255a2.375 2.375 0 0 1-4.25 1.458A2.37 2.37 0 0 1 9.875 8 2.37 2.37 0 0 1 8 7.083 2.37 2.37 0 0 1 6.125 8a2.37 2.37 0 0 1-1.875-.917A2.375 2.375 0 0 1 0 5.625V5.37a1.5 1.5 0 0 1 .361-.976zm1.78 4.275a1.375 1.375 0 0 0 2.75 0 .5.5 0 0 1 1 0 1.375 1.375 0 0 0 2.75 0 .5.5 0 0 1 1 0 1.375 1.375 0 1 0 2.75 0V5.37a.5.5 0 0 0-.12-.325L12.27 2H3.73L1.12 5.045A.5.5 0 0 0 1 5.37v.255a1.375 1.375 0 0 0 2.75 0 .5.5 0 0 1 1 0M1.5 8.5A.5.5 0 0 1 2 9v6h1v-5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v5h6V9a.5.5 0 0 1 1 0v6h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1V9a.5.5 0 0 1 .5-.5M4 15h3v-5H4zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zm3 0h-2v3h2z" />
+                                        </svg>
+                                    </span>
+                                    Xem shop
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(3, auto)",
+                        gap: "20px 50px",
+                        color: "rgba(0, 0, 0, .4)",
+                        flexGrow: "1",
+                        padding: "20px",
+                        paddingLeft: "0",
+                    }}>
+                        <div style={{
+                            display: "flex",
+                            justifyContent: "space-between"
+                        }}>
+                            <label>Đánh giá</label>
+                            <span style={{ color: "#d0011b" }}>43,3k</span>
+                        </div>
+                        <div style={{
+                            display: "flex",
+                            justifyContent: "space-between"
+                        }}>
+                            <label>Tỉ lệ phản hồi</label>
+                            <span style={{ color: "#d0011b" }}>95%</span>
+                        </div>
+                        <div style={{
+                            display: "flex",
+                            justifyContent: "space-between"
+                        }}>
+                            <label>Tham gia</label>
+                            <span style={{ color: "#d0011b" }}>4 năm trước</span>
+                        </div>
+                        <div style={{
+                            display: "flex",
+                            justifyContent: "space-between"
+                        }}>
+                            <label>Sản phẩm</label>
+                            <span style={{ color: "#d0011b" }}>203</span>
+                        </div>
+                        <div style={{
+                            display: "flex",
+                            justifyContent: "space-between"
+                        }}>
+                            <label>Thời gian phản hồi</label>
+                            <span style={{ color: "#d0011b" }}>trong vài giờ</span>
+                        </div>
+                        <div style={{
+                            display: "flex",
+                            justifyContent: "space-between"
+                        }}>
+                            <label>Người theo dõi</label>
+                            <span style={{ color: "#d0011b" }}>185,5k</span>
                         </div>
                     </div>
                 </div>
