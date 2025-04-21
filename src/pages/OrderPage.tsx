@@ -3,8 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import OrderInfo from "../models/orderInfo.model";
 import OrderRequest from "../models/orderRequest.model";
-import orderService from "../services/order.service";
 import Voucher from "../models/voucher.model";
+import orderService from "../services/order.service";
 import voucherService from "../services/voucher.service";
 
 const OrderPage = () => {
@@ -43,6 +43,7 @@ const OrderPage = () => {
     const [selectedVoucher, setSelectedVoucher] = useState<Voucher>();
     const [shippingFee, setShippingFee] = useState<number>(40000);
     const [note, setNote] = useState<string>("");
+    const [selectedVoucherId, setSelectedVoucherId] = useState<number | null>(null);
     const profileId = localStorage.getItem("profileId");
 
     let totalPrice = 0;
@@ -74,6 +75,23 @@ const OrderPage = () => {
         fetchOrderInformation();
     }, [profileId])
 
+    const getDeliveryDateRange = () => {
+        const today = new Date();
+        const startDate = new Date(today);
+        const endDate = new Date(today);
+
+        startDate.setDate(today.getDate() + 2);
+        endDate.setDate(today.getDate() + 4);
+
+        const formatDate = (date: Date) => {
+            const day = date.getDate();
+            const month = date.toLocaleString("vi-VN", { month: "short" });
+            return `${day} ${month}`;
+        };
+
+        return `${formatDate(startDate)} - ${formatDate(endDate)}`;
+    };
+
     const handleOpenPopupAddress = () => {
         setIsPopupAddressVisible(true);
     };
@@ -101,19 +119,25 @@ const OrderPage = () => {
     };
 
     const handleSelectVoucher = (voucher: any) => {
-        setSelectedVoucher(voucher);
+        if (selectedVoucherId === voucher.id) {
 
-        let discount = 0;
+            setSelectedVoucherId(null);
+            setSelectedVoucher(undefined);
+            setShippingFee(40000);
+        } else {
+            setSelectedVoucherId(voucher.id);
+            setSelectedVoucher(voucher);
 
-        if (voucher.discountPercent) {
-            discount = (40000 * voucher.discountPercent) / 100;
-        } else if (voucher.discountAmount) {
-            discount = voucher.discountAmount;
+            let discount = 0;
+
+            if (voucher.discountPercent) {
+                discount = (40000 * voucher.discountPercent) / 100;
+            } else if (voucher.discountAmount) {
+                discount = voucher.discountAmount;
+            }
+
+            setShippingFee(Math.max(0, 40000 - discount));
         }
-
-        setShippingFee(Math.max(0, 40000 - discount));
-
-        setIsPopupVoucherVisible(false);
     };
 
     // Chọn địa chỉ nhận hàng mặc định
@@ -515,12 +539,12 @@ const OrderPage = () => {
                                             <img src="/assets/icon/delivery.svg" alt="icon-delivery" />
                                         </div>
                                         <div style={{ color: "#26aa99" }}>
-                                            Đảm bảo nhận hàng từ 20 Tháng 4 - 22 Tháng 4
+                                            Đảm bảo nhận hàng từ {getDeliveryDateRange()}
                                         </div>
                                     </div>
                                     <div>
                                         <div style={{ color: "rgba(0, 0, 0, .4)" }}>
-                                            Nhận Voucher trị giá ₫15.000 nếu đơn hàng được giao đến bạn sau ngày 22 Tháng 4 2025.
+                                            Nhận Voucher trị giá ₫{((totalPrice ?? 0) * 15 / 100).toLocaleString("vi-VN")} nếu đơn giao sau thời gian trên
                                         </div>
                                     </div>
                                 </div>
@@ -855,45 +879,109 @@ const OrderPage = () => {
                             overflowY: "auto",
                         }}
                     >
-                        <div style={{ marginBottom: "10px", paddingBottom: "10px", textAlign: "left", borderBottom: "1px solid #f0f0f0" }}>
+                        <div style={{
+                            marginBottom: "10px",
+                            paddingBottom: "10px",
+                            textAlign: "left",
+                            borderBottom: "1px solid #f0f0f0",
+                            fontSize: "1.25rem"
+                        }}>
                             Chọn Voucher
                         </div>
                         <ul style={{ listStyle: "none", padding: "0" }}>
                             {claimedVouchers.map((item) => (
-                                <li
-                                    key={item.voucher.id}
+                                <div
                                     style={{
-                                        padding: "10px",
-                                        borderBottom: "1px solid #f0f0f0",
-                                        cursor: "pointer",
                                         display: "flex",
-                                        alignItems: "center",
+                                        borderTop: "1px solid #ddd",
+                                        borderRight: "1px solid #ddd",
+                                        borderBottom: "1px solid #ddd",
+                                        borderRadius: "5px 8px 8px 5px",
+                                        overflow: "hidden",
+                                        boxShadow: "2px 2px 4px rgba(0, 0, 0, 0.1)",
+                                        cursor: "pointer",
                                     }}
+
                                     onClick={() => handleSelectVoucher(item.voucher)}
                                 >
+                                    {/* Phần răng cưa bên trái */}
                                     <div
                                         style={{
                                             backgroundColor: "rgb(38, 170, 153)",
-                                            width: "50px",
-                                            height: "50px",
+                                            width: "100px",
                                             display: "flex",
-                                            justifyContent: "center",
+                                            flexDirection: "column",
+                                            justifyContent: "space-around",
                                             alignItems: "center",
-                                            borderRadius: "5px",
-                                            marginRight: "10px",
+                                            position: "relative",
                                         }}
                                     >
-                                        <img
-                                            src="/assets/voucher/bg-voucher-shipping.png"
-                                            alt="voucher"
-                                            style={{ width: "30px", height: "30px" }}
+                                        {[...Array(7)].map((_, index) => (
+                                            <div
+                                                key={index}
+                                                style={{
+                                                    width: "18px",
+                                                    height: "18px",
+                                                    backgroundColor: "#fff",
+                                                    borderRadius: "50%",
+                                                    position: "absolute",
+                                                    left: "-10px",
+                                                    top: `${index * 25}px`,
+                                                    marginTop: "6px",
+                                                    marginBottom: "5px",
+                                                }}
+                                            ></div>
+                                        ))}
+
+                                        <div style={{ textAlign: "center" }}>
+                                            <img
+                                                src="/assets/voucher/bg-voucher-shipping.png"
+                                                alt=""
+                                                style={{
+                                                    width: "70px",
+                                                    height: "70px",
+                                                }}
+                                            />
+                                            <div style={{ fontWeight: "500", color: "#fff" }}>{item.voucher.code}</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Phần thông tin voucher */}
+                                    <div
+                                        style={{
+                                            flex: 1,
+                                            padding: "1rem",
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            justifyContent: "space-between",
+                                        }}
+                                    >
+                                        <div>
+                                            <h3 style={{ margin: "0 0 0.5rem", color: "#333" }}>{item.voucher.title}</h3>
+                                            <p style={{ margin: "0 0 1rem", color: "#555" }}>{item.voucher.description}</p>
+                                        </div>
+                                        <div
+                                            style={{
+                                                color: "#05a",
+                                                fontWeight: "500",
+                                                fontSize: "1rem",
+                                                textAlign: "right",
+                                                cursor: "pointer",
+                                            }}
+                                        >
+                                            Điều kiện
+                                        </div>
+                                    </div>
+                                    {/* Radiobutton */}
+                                    <div style={{ padding: "10px" }}>
+                                        <input
+                                            type="radio"
+                                            checked={selectedVoucherId === item.voucher.id}
+                                            onChange={() => handleSelectVoucher(item.voucher)}
+                                            style={{ accentColor: "#ee4d2d" }}
                                         />
                                     </div>
-                                    <div>
-                                        <div style={{ fontWeight: "500", color: "#333" }}>{item.voucher.title}</div>
-                                        <div style={{ fontSize: "0.875rem", color: "#555" }}>{item.voucher.description}</div>
-                                    </div>
-                                </li>
+                                </div>
                             ))}
                         </ul>
                         <div

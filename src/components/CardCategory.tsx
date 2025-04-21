@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import Category from "../models/category.model";
 
 type Props = Category;
@@ -8,6 +9,9 @@ const CardCategory = ({
     description,
     image_url
 }: Props) => {
+
+    const navigate = useNavigate();
+
     return (
         <>
             <div
@@ -19,7 +23,7 @@ const CardCategory = ({
                     padding: "5px",
                     transition: "border - color 0.3s ease-in -out",
                 }}
-
+                onClick={() => navigate(`/category/${id}`)}
                 onMouseEnter={(e) => (e.currentTarget.style.border = "1px solid #888")}
                 onMouseLeave={(e) => (e.currentTarget.style.border = "1px solid rgba(0, 0, 0, .05)")}
             >

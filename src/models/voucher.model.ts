@@ -13,6 +13,7 @@ type Voucher = {
     startDate: Date,
     endDate: Date,
     totalQuantity: number,
+    perUserLimit: number,
     applicablePayment: string,
     applicableProducts: Array<VoucherApplicableProductResponse>,
     applicableCategories: Array<VoucherApplicableCategoryResponse>,

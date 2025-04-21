@@ -10,11 +10,18 @@ const SellerCategoryManagement = () => {
     const [newCategory, setNewCategory] = useState<Category>({ name: "", description: "", image_url: "" });
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string>("");
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchCategories = async () => {
-            const result = await categoryService.getAllCategories();
-            setCategories(result);
+            try {
+                const result = await categoryService.getAllCategories();
+                setCategories(result);
+            } catch (error) {
+                console.error("Có lỗi xảy ra:", error);
+            } finally {
+                setLoading(false);
+            }
         };
         fetchCategories();
     }, []);
@@ -81,11 +88,18 @@ const SellerCategoryManagement = () => {
         }
     };
 
+    if (loading) {
+        return (
+            <div style={{ textAlign: "center", marginTop: "50px" }}>
+                <p>Đang tải dữ liệu...</p>
+            </div>
+        );
+    }
 
     return (
         <>
             <div style={{ paddingLeft: "20px", fontFamily: "Arial, sans-serif" }}>
-                <div style={{ marginBottom: "20px", textAlign: "left", color: "#333", fontSize: "1.5rem"}}>Quản lý danh mục</div>
+                <div style={{ marginBottom: "20px", textAlign: "left", color: "#333", fontSize: "1.5rem" }}>Quản lý danh mục</div>
 
                 {/* Nút thêm mới */}
                 <button
