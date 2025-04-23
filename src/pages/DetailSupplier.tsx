@@ -6,27 +6,66 @@ import SupplierInfoItem from "../components/SupplierInfoItem";
 import Voucher from "../models/voucher.model";
 import voucherService from "../services/voucher.service";
 
+type UserVoucher = {
+    id: number,
+    voucher: Voucher,
+    profileId: string,
+    supplierId?: number,
+    claimedAt: Date,
+    isUse: boolean
+}
+
 const DetailSupplier = () => {
     const [vouchers, setVouchers] = useState<Voucher[]>([]);
     const [loading, setLoading] = useState(true);
+    const [claimedVoucherIds, setClaimedVoucherIds] = useState<number[]>([]);
+    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
     const { id } = useParams();
 
+    // Kiểm tra trạng thái đăng nhập
     useEffect(() => {
-        const fetchVouchers = async () => {
-            try {
-                // Lấy danh sách voucher
-                const vouchersResponse = await voucherService.getAllVoucherBySupplierId(Number(id));
-                setVouchers(vouchersResponse.result as Voucher[]);
-            } catch (error) {
-                console.error("Có lỗi xảy ra:", error);
-                toast.error("Có lỗi xảy ra khi tải danh sách voucher");
-            } finally {
-                setLoading(false);
-            }
-        };
+        const profileId = localStorage.getItem("profileId");
+        setIsLoggedIn(!!profileId);
+    }, []);
 
-        fetchVouchers();
-    }, [id]);
+    const fetchVouchers = async () => {
+        try {
+            // Lấy danh sách voucher
+            const vouchersResponse = await voucherService.getAllVoucherBySupplierId(Number(id));
+            setVouchers(vouchersResponse.result as Voucher[]);
+        } catch (error) {
+            console.error("Có lỗi xảy ra:", error);
+            toast.error("Có lỗi xảy ra khi tải danh sách voucher");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchClaimedVouchers = async () => {
+        try {
+            const profileId = localStorage.getItem("profileId");
+            const response = await voucherService.getClaimedVouchersByUser(profileId || "");
+            if (response.code === 1000) {
+                const claimedId = (response.result as UserVoucher[]).map((uv) => uv.voucher.id);
+                setClaimedVoucherIds(claimedId);
+            } else {
+                console.error("Failed to fetch claimed vouchers:", response.message);
+            }
+        } catch (error) {
+            console.error("Error fetching claimed vouchers:", error);
+        }
+    };
+
+    const refreshVouchers = async () => {
+        await fetchVouchers();
+        if (isLoggedIn) {
+            await fetchClaimedVouchers();
+        }
+    };
+
+    useEffect(() => {
+        refreshVouchers();
+    }, [isLoggedIn]);
 
     if (loading) {
         return (
@@ -288,27 +327,33 @@ const DetailSupplier = () => {
             </div>
 
             {/* Vouchers */}
-            <div style={{ padding: "20px", maxWidth: "1200px", margin: "0 auto", backgroundColor: "#fff", marginTop: "20px" }}>
-                <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(3, 1fr)",
-                        gap: "20px",
-                    }}
-                >
-                    {vouchers.map((voucher) => (
-                        <CardVoucherSupplier
-                            key={voucher.id}
-                            title={voucher.title}
-                            description={voucher.description}
-                            expiryDate={`${new Date(voucher.startDate).toLocaleDateString()} - ${new Date(
-                                voucher.endDate
-                            ).toLocaleDateString()}`}
-                            perUserLimit={voucher.perUserLimit}
-                        />
-                    ))}
+            {vouchers.length > 0 ? (
+                <div style={{ padding: "20px", maxWidth: "1200px", margin: "0 auto", backgroundColor: "#fff", marginTop: "20px" }}>
+                    <div
+                        style={{
+                            display: "grid",
+                            gridTemplateColumns: "repeat(3, 1fr)", // Hiển thị 3 voucher mỗi hàng
+                            gap: "20px",
+                        }}
+                    >
+                        {vouchers.map((voucher) => (
+                            <CardVoucherSupplier
+                                key={voucher.id}
+                                voucher={voucher}
+                                expiryDate={`${new Date(voucher.startDate).toLocaleDateString()} - ${new Date(
+                                    voucher.endDate
+                                ).toLocaleDateString()}`}
+                                isClaimed={isLoggedIn ? claimedVoucherIds.includes(voucher.id) : false}
+                                refreshVouchers={refreshVouchers}
+                            />
+                        ))}
+                    </div>
                 </div>
-            </div>
+            ) : (
+                <div style={{ textAlign: "center", marginTop: "20px", color: "#555" }}>
+                    <p></p>
+                </div>
+            )}
         </>
     )
 }

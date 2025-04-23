@@ -21,15 +21,21 @@ const OrderPage = () => {
         productName: string;
         variantColor?: string;
         variantSize?: string;
+        supplierId?: number;
     }
 
     type UserVoucher = {
         id: number,
         voucher: Voucher,
         profileId: string,
-        supplierId?: number,
+        supplierId: number,
         claimedAt: Date,
-        isUse: boolean
+        used: boolean
+    }
+
+    type SupplierResponse = {
+        id: number,
+        name: string,
     }
 
     const selectedItems: SelectedItem[] = location.state?.selectedItems || [];
@@ -39,14 +45,19 @@ const OrderPage = () => {
     const [isPopupAddressVisible, setIsPopupAddressVisible] = useState(false);
     const [isPopupVoucherVisible, setIsPopupVoucherVisible] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [claimedVouchers, setClaimedVouchers] = useState<any[]>([]);
-    const [selectedVoucher, setSelectedVoucher] = useState<Voucher>();
+    // Vouchers
+    const [claimedVouchers, setClaimedVouchers] = useState<UserVoucher[]>([]);
+    const [selectedVouchers, setSelectedVouchers] = useState<Voucher[]>([]);
+    const [selectedUserVoucherIds, setSelectedUserVoucherIds] = useState<number[]>([]);
+    const [filteredVouchers, setFilteredVouchers] = useState<UserVoucher[]>([]);
+    // Discount
+    const [totalDiscount, setTotalDiscount] = useState(0);
+    // Total price
+    const [totalPrice, setTotalPrice] = useState(0);
+    // Shipping fee
     const [shippingFee, setShippingFee] = useState<number>(40000);
     const [note, setNote] = useState<string>("");
-    const [selectedVoucherId, setSelectedVoucherId] = useState<number | null>(null);
     const profileId = localStorage.getItem("profileId");
-
-    let totalPrice = 0;
 
     useEffect(() => {
         //Lấy dữ liệu thông tin nhận hàng
@@ -72,8 +83,38 @@ const OrderPage = () => {
             }
         }
 
+        const fetchClaimedVouchers = async () => {
+            try {
+                const profileId = localStorage.getItem("profileId");
+                if (!profileId) {
+                    console.error("User is not logged in");
+                    return;
+                }
+
+                const response = await voucherService.getClaimedVouchersByUser(profileId);
+                if (response.code === 1000) {
+                    setClaimedVouchers(response.result as UserVoucher[]);
+                } else {
+                    console.error("Failed to fetch claimed vouchers:", response.message);
+                }
+            } catch (error) {
+                console.error("Error fetching claimed vouchers:", error);
+            }
+        };
+
         fetchOrderInformation();
+        fetchClaimedVouchers();
     }, [profileId])
+
+    // total price
+    useEffect(() => {
+        const calculateTotalPrice = () => {
+            const total = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            setTotalPrice(total);
+        };
+
+        calculateTotalPrice();
+    }, [selectedItems]);
 
     const getDeliveryDateRange = () => {
         const today = new Date();
@@ -92,6 +133,7 @@ const OrderPage = () => {
         return `${formatDate(startDate)} - ${formatDate(endDate)}`;
     };
 
+    // handle popup address
     const handleOpenPopupAddress = () => {
         setIsPopupAddressVisible(true);
     };
@@ -100,45 +142,6 @@ const OrderPage = () => {
         setIsPopupAddressVisible(false);
     };
 
-    const handleOpenPopupVoucher = async () => {
-        try {
-            const response = await voucherService.getClaimedVouchersByUser(profileId!);
-            if (response.code === 1000) {
-                setClaimedVouchers((response.result as UserVoucher[]).filter((item: any) => item.voucher.voucherType === "SHIPPING"));
-                setIsPopupVoucherVisible(true);
-            } else {
-                toast.error(`Có lỗi xảy ra: ${response.message}`);
-            }
-        } catch (error) {
-            toast.error(`Có lỗi xảy ra: ${error instanceof Error ? error.message : String(error)}`);
-        }
-    };
-
-    const handleClosePopupVoucher = () => {
-        setIsPopupVoucherVisible(false);
-    };
-
-    const handleSelectVoucher = (voucher: any) => {
-        if (selectedVoucherId === voucher.id) {
-
-            setSelectedVoucherId(null);
-            setSelectedVoucher(undefined);
-            setShippingFee(40000);
-        } else {
-            setSelectedVoucherId(voucher.id);
-            setSelectedVoucher(voucher);
-
-            let discount = 0;
-
-            if (voucher.discountPercent) {
-                discount = (40000 * voucher.discountPercent) / 100;
-            } else if (voucher.discountAmount) {
-                discount = voucher.discountAmount;
-            }
-
-            setShippingFee(Math.max(0, 40000 - discount));
-        }
-    };
 
     // Chọn địa chỉ nhận hàng mặc định
     const handleSetDefaultAddress = (selectedInfo: OrderInfo) => {
@@ -155,10 +158,156 @@ const OrderPage = () => {
         }
     }, [orderInformation]);
 
+    // handle popup voucher
+    const handleChooseOtherVoucher = () => {
+        const validVouchers = claimedVouchers.filter(
+            (item) =>
+                new Date(item.voucher.endDate) > new Date() &&
+                !item.used &&
+                !item.voucher.creatorId
+        );
+        setFilteredVouchers(validVouchers);
+        setIsPopupVoucherVisible(true);
+    };
+
+    const handleChooseShopVoucher = () => {
+        const shopVouchers = claimedVouchers.filter(
+            (item) => item.supplierId === 4 &&
+                item.profileId === profileId &&
+                !item.used
+        );
+        setFilteredVouchers(shopVouchers);
+        setIsPopupVoucherVisible(true);
+    };
+
+    const handleSelectVoucher = (voucher: Voucher, userVoucherId: number) => {
+        const orderTotal = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+        // Kiểm tra điều kiện minOrderAmount
+        if (orderTotal < voucher.minOrderAmount!) {
+            toast.error("Đơn hàng không đủ điều kiện để áp dụng voucher này.");
+            return;
+        }
+
+        // Kiểm tra xem UserVoucher đã được chọn chưa
+        const isUserVoucherSelected = selectedUserVoucherIds.includes(userVoucherId);
+
+        if (isUserVoucherSelected) {
+            // Tìm vị trí của userVoucherId trong mảng selectedUserVoucherIds
+            const index = selectedUserVoucherIds.indexOf(userVoucherId);
+
+            // Lấy voucher tương ứng từ selectedVouchers
+            const voucherToRemove = selectedVouchers[index];
+
+            // Cập nhật danh sách selectedUserVoucherIds
+            const updatedUserVoucherIds = selectedUserVoucherIds.filter(id => id !== userVoucherId);
+            setSelectedUserVoucherIds(updatedUserVoucherIds);
+
+            // Cập nhật danh sách selectedVouchers
+            const updatedVouchers = selectedVouchers.filter((_, i) => i !== index);
+            setSelectedVouchers(updatedVouchers);
+
+            // Nếu là voucher loại SHIPPING, đặt lại phí vận chuyển
+            if (voucherToRemove.voucherType === "SHIPPING") {
+                const discount = calculateDiscount(voucherToRemove, orderTotal, shippingFee);
+                setShippingFee(40000); // Đặt lại phí vận chuyển mặc định
+                setTotalDiscount((prev) => prev - discount); // Giảm tổng số tiền giảm giá
+            } else {
+                // Nếu là voucher loại khác, đặt lại tổng tiền
+                const discount = calculateDiscount(voucherToRemove, orderTotal, shippingFee);
+                setTotalPrice((prev) => prev + discount); // Khôi phục tổng tiền
+                setTotalDiscount((prev) => prev - discount); // Giảm tổng số tiền giảm giá
+            }
+        } else {
+            // Tìm index của voucher cùng loại nếu đã tồn tại
+            const existingVoucherIndex = selectedVouchers.findIndex(
+                (selected) => selected.voucherType === voucher.voucherType
+            );
+
+            // Danh sách voucher và userVoucherIds mới sau khi loại bỏ voucher cùng loại (nếu có)
+            let updatedVouchers = [...selectedVouchers];
+            let updatedUserVoucherIds = [...selectedUserVoucherIds];
+
+            if (existingVoucherIndex !== -1) {
+                const existingVoucher = selectedVouchers[existingVoucherIndex];
+                const existingUserVoucherId = selectedUserVoucherIds[existingVoucherIndex];
+
+                // Hoàn lại giá trị cho voucher cũ
+                if (existingVoucher.voucherType === "SHIPPING") {
+                    const oldDiscount = calculateDiscount(existingVoucher, orderTotal, shippingFee);
+                    setShippingFee(40000); // Đặt lại phí vận chuyển mặc định
+                    setTotalDiscount((prev) => prev - oldDiscount);
+                } else {
+                    const oldDiscount = calculateDiscount(existingVoucher, orderTotal, shippingFee);
+                    setTotalPrice((prev) => prev + oldDiscount); // Khôi phục tổng tiền
+                    setTotalDiscount((prev) => prev - oldDiscount);
+                }
+
+                // Xóa voucher cũ và userVoucherId tương ứng
+                updatedVouchers.splice(existingVoucherIndex, 1);
+                updatedUserVoucherIds.splice(existingVoucherIndex, 1);
+            }
+
+            // Thêm voucher mới vào danh sách đã cập nhật
+            updatedVouchers.push(voucher);
+
+            // Thêm id UserVoucher mới vào danh sách đã cập nhật
+            updatedUserVoucherIds.push(userVoucherId);
+
+            // Cập nhật state
+            setSelectedVouchers(updatedVouchers);
+            setSelectedUserVoucherIds(updatedUserVoucherIds);
+
+            // Áp dụng voucher mới
+            if (voucher.voucherType === "SHIPPING") {
+                const discount = calculateDiscount(voucher, orderTotal, 40000); // Tính dựa trên phí gốc
+                setShippingFee(Math.max(0, 40000 - discount)); // Đảm bảo phí vận chuyển không âm
+                setTotalDiscount((prev) => prev + discount); // Tăng tổng số tiền giảm giá
+            } else {
+                // Nếu là voucher loại khác, tính toán giảm giá cho tổng tiền
+                const discount = calculateDiscount(voucher, orderTotal, shippingFee);
+                setTotalPrice((prev) => Math.max(0, prev - discount)); // Đảm bảo tổng tiền không âm
+                setTotalDiscount((prev) => prev + discount); // Tăng tổng số tiền giảm giá
+            }
+        }
+    };
+
+    // Hàm tính toán giảm giá
+    const calculateDiscount = (voucher: Voucher, orderTotal: number, shippingFee: number) => {
+        let discount = 0;
+
+        if (voucher.voucherType === "SHIPPING") {
+            if (voucher.discountPercent) {
+                discount = (shippingFee * voucher.discountPercent) / 100;
+            } else if (voucher.discountAmount) {
+                discount = voucher.discountAmount;
+            }
+        } else {
+            if (voucher.discountPercent) {
+                discount = (orderTotal * voucher.discountPercent) / 100;
+            } else if (voucher.discountAmount) {
+                discount = voucher.discountAmount;
+            }
+        }
+
+        // Giảm giá không được vượt quá maxDiscountAmount
+        return Math.min(discount, voucher.maxDiscountAmount || discount);
+    };
+
+    const handleClosePopupVoucher = () => {
+        setIsPopupVoucherVisible(false);
+    };
+
     // Đặt hàng
     const handleOrder = async (request: OrderRequest) => {
         try {
             const response = await orderService.createOrder(request);
+            // Sử dụng tất cả các voucher đã chọn
+            if (selectedUserVoucherIds && selectedUserVoucherIds.length > 0) {
+                for (const id of selectedUserVoucherIds) {
+                    await voucherService.useVoucher(id);
+                }
+            }
             if (response.code === Number(process.env.REACT_APP_CODE_SUCCESS)) {
                 toast.success("Đặt hàng thành công");
                 navigate("/");
@@ -183,8 +332,9 @@ const OrderPage = () => {
                 productImage: item.productImage,
                 productName: item.productName,
             })),
+            totalPrice: totalPrice + shippingFee,
             shippingFee,
-            voucherId: selectedVoucher?.id,
+            // voucherId: selectedVoucher?.id,
             note,
         };
         handleOrder(orderRequest);
@@ -403,7 +553,7 @@ const OrderPage = () => {
                                 </div>
 
                                 <div style={{ display: "flex", flex: "2", justifyContent: "flex-end", fontSize: "0.75rem", color: "#222" }}>
-                                    ₫{(item.quantity * item.price).toLocaleString("vi-VN")} <span hidden>{totalPrice += item.quantity * item.price}</span>
+                                    ₫{(item.quantity * item.price).toLocaleString("vi-VN")}
                                 </div>
                             </div>
                         ))}
@@ -429,7 +579,9 @@ const OrderPage = () => {
                                     <path d="M1.5 3A1.5 1.5 0 0 0 0 4.5V6a.5.5 0 0 0 .5.5 1.5 1.5 0 1 1 0 3 .5.5 0 0 0-.5.5v1.5A1.5 1.5 0 0 0 1.5 13h13a1.5 1.5 0 0 0 1.5-1.5V10a.5.5 0 0 0-.5-.5 1.5 1.5 0 0 1 0-3A.5.5 0 0 0 16 6V4.5A1.5 1.5 0 0 0 14.5 3zM1 4.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 .5.5v1.05a2.5 2.5 0 0 0 0 4.9v1.05a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-1.05a2.5 2.5 0 0 0 0-4.9z" />
                                 </svg>
                             </div>
-                            <div>Voucher của shop</div>
+                            <div style={{ textTransform: "capitalize", cursor: "pointer" }}
+                                onClick={handleChooseShopVoucher}
+                            >Voucher của shop</div>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", color: "#05a" }}>
                             <div style={{ display: "flex", alignItems: "center", margin: "0.5rem", cursor: "pointer" }}>
@@ -439,7 +591,7 @@ const OrderPage = () => {
                                 </svg>
                             </div>
                             <div style={{ textTransform: "capitalize", cursor: "pointer" }}
-                                onClick={handleOpenPopupVoucher}
+                                onClick={handleChooseOtherVoucher}
                             >
                                 Chọn Voucher khác
                             </div>
@@ -630,7 +782,7 @@ const OrderPage = () => {
                         justifyContent: "flex-end",
                         padding: "0 1.6rem 0 0.625rem"
                     }}>
-                        ₫ {totalPrice.toLocaleString("vi-VN")}
+                        ₫{totalPrice.toLocaleString("vi-VN")}
                     </div>
                     <h3 style={{ gridColumnStart: "2", gridColumnEnd: "3", color: "rgba(0, 0, 0, .54)", fontSize: "0.75rem", fontWeight: "400" }}>Tổng tiền phí vận chuyển</h3>
                     <div style={{
@@ -651,7 +803,7 @@ const OrderPage = () => {
                         padding: "0 1.6rem 0 0.625rem",
                         color: "#ee4d2d",
                     }}>
-                        -₫{selectedVoucher ? (selectedVoucher.discountAmount!).toLocaleString("vi-VN") : 0}
+                        -₫{totalDiscount ? totalDiscount.toLocaleString("vi-VN") : 0}
                     </div>
                     <h3 style={{ gridColumnStart: "2", gridColumnEnd: "3", color: "rgba(0, 0, 0, .54)", fontSize: "0.75rem", fontWeight: "400" }}>Tổng thanh toán</h3>
                     <div style={{
@@ -705,6 +857,7 @@ const OrderPage = () => {
                                     productImage: item.productImage,
                                     productName: item.productName
                                 })),
+                                totalPrice: (totalPrice + shippingFee)
                             };
                             handleSubmitOrder();
                         }}
@@ -889,8 +1042,8 @@ const OrderPage = () => {
                             Chọn Voucher
                         </div>
                         <ul style={{ listStyle: "none", padding: "0" }}>
-                            {claimedVouchers.map((item) => (
-                                <div
+                            {filteredVouchers.map((item) => (
+                                <div key={item.id}
                                     style={{
                                         display: "flex",
                                         borderTop: "1px solid #ddd",
@@ -900,14 +1053,15 @@ const OrderPage = () => {
                                         overflow: "hidden",
                                         boxShadow: "2px 2px 4px rgba(0, 0, 0, 0.1)",
                                         cursor: "pointer",
+                                        marginBottom: "0.25rem"
                                     }}
 
-                                    onClick={() => handleSelectVoucher(item.voucher)}
+                                    onClick={() => handleSelectVoucher(item.voucher, item.id)}
                                 >
                                     {/* Phần răng cưa bên trái */}
                                     <div
                                         style={{
-                                            backgroundColor: "rgb(38, 170, 153)",
+                                            backgroundColor: item.voucher.voucherType === "SHIPPING" ? "rgb(38, 170, 153)" : "#ee4d2d",
                                             width: "100px",
                                             display: "flex",
                                             flexDirection: "column",
@@ -935,7 +1089,7 @@ const OrderPage = () => {
 
                                         <div style={{ textAlign: "center" }}>
                                             <img
-                                                src="/assets/voucher/bg-voucher-shipping.png"
+                                                src={item.voucher.voucherType === "SHIPPING" ? "/assets/voucher/bg-voucher-shipping.png" : "/assets/voucher/bg-voucher-shopeepay.png"}
                                                 alt=""
                                                 style={{
                                                     width: "70px",
@@ -972,12 +1126,12 @@ const OrderPage = () => {
                                             Điều kiện
                                         </div>
                                     </div>
-                                    {/* Radiobutton */}
+                                    {/* Checkbox */}
                                     <div style={{ padding: "10px" }}>
                                         <input
-                                            type="radio"
-                                            checked={selectedVoucherId === item.voucher.id}
-                                            onChange={() => handleSelectVoucher(item.voucher)}
+                                            type="checkbox"
+                                            checked={selectedUserVoucherIds.includes(item.id)}
+                                            onChange={() => handleSelectVoucher(item.voucher, item.id)}
                                             style={{ accentColor: "#ee4d2d" }}
                                         />
                                     </div>

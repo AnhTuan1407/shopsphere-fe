@@ -16,6 +16,7 @@ type OrderRequest = {
     shippingFee?: number;
     voucherId?: number,
     note?: string,
+    totalPrice: number
 };
 
 export default OrderRequest;

@@ -2,14 +2,19 @@ type CardVoucherWalletProps = {
     voucher: any;
     backgroundColor: string;
     imageSrc: string;
+    quantity: number;
 };
 
-const CardVoucherWallet: React.FC<CardVoucherWalletProps> = ({ voucher, backgroundColor, imageSrc }) => {
+const CardVoucherWallet: React.FC<CardVoucherWalletProps> = ({
+    voucher,
+    backgroundColor,
+    imageSrc,
+    quantity,
+}) => {
     const currentDate = new Date();
     const startDate = new Date(voucher.startDate);
     const endDate = new Date(voucher.endDate);
 
-    // Tính toán trạng thái và thông tin hạn sử dụng
     let expirationText = "";
     let buttonText = "";
     let isDisabled = false;
@@ -38,6 +43,7 @@ const CardVoucherWallet: React.FC<CardVoucherWalletProps> = ({ voucher, backgrou
                 overflow: "hidden",
                 boxShadow: "2px 2px 4px rgba(0, 0, 0, 0.1)",
                 flex: "1",
+                position: "relative",
             }}
         >
             {/* Phần răng cưa bên trái */}
@@ -95,7 +101,9 @@ const CardVoucherWallet: React.FC<CardVoucherWalletProps> = ({ voucher, backgrou
                     <h3 style={{ margin: "0 0 0.5rem", color: "#333" }}>{voucher.title}</h3>
                     <p style={{ margin: "0 0 0.5rem", color: "#555" }}>{voucher.description}</p>
                     <div style={{ display: "flex" }}>
-                        <p style={{ margin: "0", color: "#888", fontSize: "0.75rem", marginRight: "0.625rem" }}>{expirationText}</p>
+                        <p style={{ margin: "0", color: "#888", fontSize: "0.75rem", marginRight: "0.625rem" }}>
+                            {expirationText}
+                        </p>
                         <div
                             style={{
                                 color: "#05a",
@@ -127,6 +135,25 @@ const CardVoucherWallet: React.FC<CardVoucherWalletProps> = ({ voucher, backgrou
                     {buttonText}
                 </div>
             </div>
+
+            {/* Hiển thị số lượng ở góc phải */}
+            {quantity > 1 && (
+                <div
+                    style={{
+                        position: "absolute",
+                        top: "10px",
+                        right: "10px",
+                        backgroundColor: "#d0011b",
+                        color: "#fff",
+                        fontSize: "0.75rem",
+                        fontWeight: "bold",
+                        padding: "2px 6px",
+                        borderRadius: "12px",
+                    }}
+                >
+                    x{quantity}
+                </div>
+            )}
         </div>
     );
 };

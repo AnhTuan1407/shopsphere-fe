@@ -36,9 +36,9 @@ const CardReview = ({
 }: Props) => {
     const [likeCount, setLikeCount] = useState<number>();
     const [isLike, setIsLike] = useState<boolean>();
-    const [profileId, setProfileId] = useState<string | null>(null); // Lưu profileId từ localStorage
+    const [profileId, setProfileId] = useState<string | null>(null);
     const [username, setUsername] = useState<string | null>(null);
-    const navigate = useNavigate(); // Hook để chuyển hướng
+    const navigate = useNavigate();
 
     useEffect(() => {
         // Lấy profileId từ localStorage khi trang được tải
@@ -77,13 +77,11 @@ const CardReview = ({
 
         const fetchUsername = async () => {
             try {
-                if (storedProfileId) {
-                    const response = await profileService.getUserById(profile.userId!) as { code: number; result: { username: string }; message: string };
-                    if (response.code === Number(process.env.REACT_APP_CODE_SUCCESS)) {
-                        setUsername(response.result.username);
-                    } else {
-                        toast.error(response.message);
-                    }
+                const response = await profileService.getUserById(profile.userId!) as { code: number; result: { username: string }; message: string };
+                if (response.code === Number(process.env.REACT_APP_CODE_SUCCESS)) {
+                    setUsername(response.result.username);
+                } else {
+                    toast.error(response.message);
                 }
             } catch (error) {
                 toast.error(`Có lỗi xảy ra: ${error instanceof Error ? error.message : ""}`);

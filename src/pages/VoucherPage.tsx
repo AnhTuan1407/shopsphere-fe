@@ -18,6 +18,7 @@ const VoucherPage = () => {
     const [claimedVoucherIds, setClaimedVoucherIds] = useState<number[]>([]);
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
+    // Kiểm tra trạng thái đăng nhập
     useEffect(() => {
         const profileId = localStorage.getItem("profileId");
         setIsLoggedIn(!!profileId);

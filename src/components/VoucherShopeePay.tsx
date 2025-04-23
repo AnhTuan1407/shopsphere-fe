@@ -2,14 +2,11 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import voucherService from "../services/voucher.service";
+import Voucher from "../models/voucher.model";
+import VoucherDetail from "../pages/VoucherDetail";
 
 type VoucherProps = {
-    voucher: {
-        id: number;
-        code: string;
-        title: string;
-        description: string;
-    };
+    voucher: Voucher;
     isClaimed: boolean;
     refreshVouchers: () => void;
 };
@@ -25,8 +22,9 @@ const VoucherShopeePay: React.FC<VoucherProps> = ({ voucher, isClaimed, refreshV
         try {
             const profileId = localStorage.getItem("profileId");
             if (!profileId) {
-                navigate("/");
+                navigate("/sign-in");
                 toast.error("Đăng nhập để nhận mã giảm giá");
+                return;
             }
 
             const request = {
@@ -46,6 +44,10 @@ const VoucherShopeePay: React.FC<VoucherProps> = ({ voucher, isClaimed, refreshV
             toast.error("Có lỗi xảy ra");
         }
     }
+
+    const handleViewConditions = () => {
+        navigate("/vouchers/detail", { state: { voucher } });
+    };
 
     return (
         <div
@@ -143,6 +145,7 @@ const VoucherShopeePay: React.FC<VoucherProps> = ({ voucher, isClaimed, refreshV
                         textAlign: "right",
                         cursor: "pointer",
                     }}
+                    onClick={handleViewConditions}
                 >
                     Điều kiện
                 </div>
