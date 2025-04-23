@@ -29,6 +29,11 @@ const voucherService = {
         const response = await api.get(`/sales/vouchers/types`);
         return response.data;
     },
+
+    useVoucher: async (id: number): Promise<ApiResponse> => {
+        const response = await api.put(`/sales/vouchers/use/${id}`);
+        return response.data;
+    },
 }
 
 export default voucherService;

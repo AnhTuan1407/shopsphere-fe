@@ -18,7 +18,7 @@ const reviewService = {
         return response.data;
     },
     getAllReviewsByProductId: async (id: number): Promise<ApiResponse> => {
-        const response = await api.get(`/reviews/${id}`);
+        const response = await api.get(`/reviews/by-product/${id}`);
         return response.data;
     },
 

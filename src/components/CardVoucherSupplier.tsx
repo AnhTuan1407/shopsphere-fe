@@ -1,13 +1,54 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import voucherService from "../services/voucher.service";
+import Voucher from "../models/voucher.model";
 
 type VoucherProps = {
-    title: string;
-    description: string;
+    voucher: Voucher;
+    isClaimed: boolean;
     expiryDate: string;
-    perUserLimit: number;
+    refreshVouchers: () => void;
 };
 
-const Voucher: React.FC<VoucherProps> = ({ title, description, expiryDate, perUserLimit }) => {
+const CardVoucherSupplier: React.FC<VoucherProps> = ({ voucher, expiryDate, isClaimed, refreshVouchers }) => {
+    const navigate = useNavigate();
+    const handleClaimVoucher = async () => {
+        try {
+            const profileId = localStorage.getItem("profileId");
+            if (!profileId) {
+                navigate("/sign-in");
+                toast.error("Đăng nhập để nhận mã giảm giá");
+                return;
+            }
+
+            const request = {
+                voucherId: voucher.id,
+                profileId: profileId,
+                supplierId: voucher.creatorId,
+            };
+
+            const response = await voucherService.claimedVoucher(request);
+            if (response.code === 1000) {
+                toast.success("Bạn đã lưu mã giảm giá thành công!");
+                refreshVouchers();
+            } else {
+                toast.error(response.message);
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Có lỗi xảy ra");
+        }
+    };
+
+    const handleBuyNow = () => {
+        navigate("/");
+    };
+
+    const handleViewConditions = () => {
+        navigate("/vouchers/detail", { state: { voucher } });
+    };
+
     return (
         <div
             style={{
@@ -36,10 +77,10 @@ const Voucher: React.FC<VoucherProps> = ({ title, description, expiryDate, perUs
                 {/* Nội dung bên trái */}
                 <div>
                     <h3 style={{ margin: "0 0 0.5rem", color: "#d0011b", fontSize: "1rem", fontWeight: "bold" }}>
-                        {title}
+                        {voucher.title}
                     </h3>
                     <p style={{ margin: "0 0 0.5rem", color: "#d0011b", fontSize: "0.875rem" }}>
-                        {description}
+                        {voucher.description}
                     </p>
                     <p style={{ margin: "0", color: "#999", fontSize: "0.75rem" }}>
                         HSD: {expiryDate}
@@ -74,28 +115,48 @@ const Voucher: React.FC<VoucherProps> = ({ title, description, expiryDate, perUs
                         borderRadius: "12px",
                     }}
                 >
-                    x{perUserLimit}
+                    x{voucher.perUserLimit}
                 </div>
 
-                {/* Nút lưu */}
-                <div
-                    style={{
-                        color: "#fff",
-                        backgroundColor: "#d0011b",
-                        fontSize: "1rem",
-                        border: `1px solid #d0011b`,
-                        padding: "0.5rem 1rem",
-                        borderRadius: "0.625rem",
-                        fontWeight: "500",
-                        textAlign: "center",
-                        cursor: "pointer",
-                    }}
-                >
-                    Lưu
+                <div style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    marginTop: "20px"
+                }}>
+                    {/* Nút lưu */}
+                    <div
+                        style={{
+                            color: "#fff",
+                            backgroundColor: "#d0011b",
+                            fontSize: "0.875rem",
+                            border: `1px solid #d0011b`,
+                            padding: "0.5rem 1rem",
+                            borderRadius: "0.625rem",
+                            textAlign: "center",
+                            cursor: "pointer",
+                            boxSizing: "border-box",
+                        }}
+                        onClick={isClaimed ? handleBuyNow : handleClaimVoucher}
+                    >
+                        {isClaimed ? "Dùng ngay" : "Lưu"}
+                    </div>
+
+                    <div
+                        style={{
+                            color: "#05a",
+                            fontSize: "0.875rem",
+                            cursor: "pointer",
+                            textAlign: "center",
+                        }}
+
+                        onClick={handleViewConditions}
+                    >
+                        Điều kiện
+                    </div>
                 </div>
             </div>
         </div>
     );
 };
 
-export default Voucher;
+export default CardVoucherSupplier;

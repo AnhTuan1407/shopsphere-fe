@@ -306,24 +306,6 @@ const CardOrderProfile = ({
                             justifyContent: "flex-end",
                         }}
                     >
-                        Phí vận chuyển:
-                        <span
-                            style={{
-                                color: "#ee4d2d",
-                                fontSize: "0.875rem",
-                                marginLeft: "0.25rem",
-                            }}
-                        >
-                            ₫
-                        </span>
-                        <span
-                            style={{
-                                color: "#ee4d2d",
-                                fontSize: "1.25rem",
-                            }}
-                        >
-                            {shippingFee.toLocaleString("vi-VN")}
-                        </span>
                     </div>
 
                     <div
@@ -351,7 +333,7 @@ const CardOrderProfile = ({
                                 fontSize: "1.25rem",
                             }}
                         >
-                            {(totalPrice + shippingFee).toLocaleString("vi-VN")}
+                            {(totalPrice).toLocaleString("vi-VN")}
                         </span>
                     </div>
                 </div>

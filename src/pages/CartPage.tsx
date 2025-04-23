@@ -65,6 +65,7 @@ const CartPage = () => {
                         variantSize: variant.size || "",
                         variantPrice: variant.price || 0,
                         supplierName: supplier.name || "Unknown Supplier",
+                        supplierId: product.supplier?.id || "",
                         supplierImage: supplier.imageUrl || "",
                         quantity: cartItem.quantity || 1,
                     };

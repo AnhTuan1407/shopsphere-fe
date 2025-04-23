@@ -27,6 +27,7 @@ import DetailCategory from './pages/DetailCategory';
 import DetailSupplier from './pages/DetailSupplier';
 import SupplierLayout from './layouts/SupplierLayout';
 import SellerVoucherManagement from './pages/SellerVoucherManagement';
+import VoucherDetail from './pages/VoucherDetail';
 
 const appRoutes: RouteObject[] = [
   {
@@ -37,6 +38,7 @@ const appRoutes: RouteObject[] = [
       { path: "products/:id", element: <DetailProduct /> },
       { path: "category/:id", element: <DetailCategory /> },
       { path: "vouchers", element: <VoucherPage /> },
+      { path: "vouchers/detail", element: <VoucherDetail /> },
     ],
   },
   {

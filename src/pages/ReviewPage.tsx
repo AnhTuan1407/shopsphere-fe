@@ -200,7 +200,7 @@ const ReviewPage = ({ productId }: Props) => {
                             }}
                             onClick={showAllReviews}
                         >
-                            Tất cả
+                            Tất cả ({allReviews.length})
                         </div>
                         {[5, 4, 3, 2, 1].map((rating) => (
                             <div

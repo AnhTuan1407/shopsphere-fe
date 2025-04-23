@@ -1,14 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import voucherService from "../services/voucher.service";
+import Voucher from "../models/voucher.model";
+import VoucherDetail from "../pages/VoucherDetail";
 
 type VoucherProps = {
-    voucher: {
-        id: number;
-        code: string;
-        title: string;
-        description: string;
-    };
+    voucher: Voucher;
     isClaimed: boolean;
     refreshVouchers: () => void;
 };
@@ -45,6 +42,10 @@ const VoucherShipping: React.FC<VoucherProps> = ({ voucher, isClaimed, refreshVo
 
     const handleBuyNow = () => {
         navigate("/");
+    };
+
+    const handleViewConditions = () => {
+        navigate("/vouchers/detail", { state: { voucher } });
     };
 
     return (
@@ -142,6 +143,8 @@ const VoucherShipping: React.FC<VoucherProps> = ({ voucher, isClaimed, refreshVo
                         textAlign: "right",
                         cursor: "pointer",
                     }}
+
+                    onClick={handleViewConditions}
                 >
                     Điều kiện
                 </div>
