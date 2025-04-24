@@ -25,6 +25,14 @@ const HeaderLayout = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const { cartItemCount, setCartItemCount } = useCart();
 
+    const [keyword, setKeyword] = useState('');
+
+    const handleSearch = () => {
+        if (keyword.trim() !== '') {
+            navigate(`/search?keyword=${encodeURIComponent(keyword)}`);
+        }
+    }
+    
     useEffect(() => {
         const token = localStorage.getItem("token");
         const userId = localStorage.getItem("userId");
@@ -259,7 +267,14 @@ const HeaderLayout = () => {
                             marginLeft: "1rem",
                             marginRight: "1rem",
                         }}>
-                            <SearchField placeholder="Tìm tên sản phẩm, thương hiệu, và tên shop" width="100%" height="2.25rem" />
+                            <SearchField
+                                value={keyword}
+                                onChange={setKeyword}
+                                placeholder="Tìm tên sản phẩm..."
+                                width="100%"
+                                height="2.25rem"
+                                onSearch={handleSearch}
+                            />
                             <div style={{
                                 marginTop: "0.5rem",
                             }}>

@@ -1,9 +1,9 @@
-import { AppstoreOutlined, BarChartOutlined, BookOutlined, PieChartOutlined, ShoppingCartOutlined, SnippetsOutlined } from "@ant-design/icons";
-import { Button, Layout, Menu } from "antd";
+import { AppstoreOutlined, BookOutlined, FormOutlined, PieChartOutlined, ShoppingCartOutlined, SnippetsOutlined } from "@ant-design/icons";
+import { Layout, Menu } from "antd";
 import { useState } from "react";
+import { Outlet, useNavigate } from "react-router-dom";
 import shopeeLogo from "../assets/shopee-white-logo.png";
 import HeaderSeller from '../layouts/HeaderSeller';
-import { Outlet, useNavigate } from "react-router-dom";
 
 const { Sider, Content } = Layout;
 
@@ -41,6 +41,9 @@ const SellerLayout = () => {
                     </Menu.Item>
                     <Menu.Item key="/seller/vouchers" icon={<SnippetsOutlined />}>
                         Mã giảm giá
+                    </Menu.Item>
+                    <Menu.Item key="/seller/flash-sale" icon={<FormOutlined />}>
+                        Flash sale
                     </Menu.Item>
                 </Menu>
             </Sider>

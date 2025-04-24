@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import CardCategory from "../components/CardCategory";
 import CardProduct from "../components/CardProduct";
 import Category from "../models/category.model";
@@ -15,15 +15,6 @@ const HomePage = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                const data = await productService.getAllProducts();
-                setProducts(data);
-            } catch (error) {
-                console.error("Lỗi khi lấy danh sách sản phẩm:", error);
-            }
-        };
-
         const fetchCategories = async () => {
             try {
                 const data = await categoryService.getAllCategories();
@@ -33,9 +24,28 @@ const HomePage = () => {
             }
         };
 
-        fetchProducts();
         fetchCategories();
     }, []);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const response = await productService.getAllProducts();
+                if (response) {
+                    setProducts(response as Product[]);
+                } else {
+                    setProducts([]);
+                    console.error("Lỗi khi fetch product");
+                }
+            } catch (error) {
+                console.error("Lỗi khi lấy danh sách sản phẩm:", error);
+                setProducts([]);
+            }
+        };
+
+        fetchProducts();
+    }, []);
+
 
     return (
         <>
@@ -194,24 +204,35 @@ const HomePage = () => {
                     padding: "0.25rem",
                     marginTop: "0.95rem",
                 }}>
-
-                    <div style={{
-                        display: "flex",
-                        rowGap: "1rem",
-                        columnGap: "1rem",
-                    }}>
-                        {
-                            products.map(product =>
-                                <CardProduct
-                                    key={product.id}
-                                    id={product.id}
-                                    name={product.name}
-                                    imageUrl={product.imageUrl}
-                                    variants={product.variants}
-                                />
-                            )
-                        }
-                    </div>
+                    {
+                        products.length > 0 ? (
+                            <div style={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                rowGap: "1rem",
+                                columnGap: "1rem",
+                            }}>
+                                {products.map(product =>
+                                    <CardProduct
+                                        key={product.id}
+                                        id={product.id}
+                                        name={product.name}
+                                        imageUrl={product.imageUrl}
+                                        variants={product.variants}
+                                    />
+                                )}
+                            </div>
+                        ) : (
+                            <div style={{
+                                padding: "2rem",
+                                textAlign: "center",
+                                color: "#999",
+                                fontSize: "18px",
+                            }}>
+                                Không có sản phẩm nào.
+                            </div>
+                        )
+                    }
                 </div>
             </div >
         </>

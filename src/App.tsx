@@ -28,6 +28,9 @@ import DetailSupplier from './pages/DetailSupplier';
 import SupplierLayout from './layouts/SupplierLayout';
 import SellerVoucherManagement from './pages/SellerVoucherManagement';
 import VoucherDetail from './pages/VoucherDetail';
+import SearchProductPage from './pages/SearchProductPage';
+import SearchShopPage from './pages/SearchShopPage';
+import SellerFlashSale from './pages/SellerFlashSale';
 
 const appRoutes: RouteObject[] = [
   {
@@ -36,6 +39,8 @@ const appRoutes: RouteObject[] = [
     children: [
       { index: true, element: <HomePage /> },
       { path: "products/:id", element: <DetailProduct /> },
+      { path: "search", element: <SearchProductPage /> },
+      { path: "search-shop", element: <SearchShopPage /> },
       { path: "category/:id", element: <DetailCategory /> },
       { path: "vouchers", element: <VoucherPage /> },
       { path: "vouchers/detail", element: <VoucherDetail /> },
@@ -142,6 +147,10 @@ const appRoutes: RouteObject[] = [
           {
             path: "/seller/vouchers",
             element: <SellerVoucherManagement />
+          },
+          {
+            path: "/seller/flash-sale",
+            element: <SellerFlashSale />
           },
         ],
       },
