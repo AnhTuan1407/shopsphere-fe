@@ -5,6 +5,8 @@ import CardVoucherSupplier from "../components/CardVoucherSupplier";
 import SupplierInfoItem from "../components/SupplierInfoItem";
 import Voucher from "../models/voucher.model";
 import voucherService from "../services/voucher.service";
+import Supplier from "../models/supplier.model";
+import supplierService from "../services/supplier.service";
 
 type UserVoucher = {
     id: number,
@@ -20,6 +22,7 @@ const DetailSupplier = () => {
     const [loading, setLoading] = useState(true);
     const [claimedVoucherIds, setClaimedVoucherIds] = useState<number[]>([]);
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+    const [supplier, setSupplier] = useState<Supplier>();
     const { id } = useParams();
 
     // Kiểm tra trạng thái đăng nhập
@@ -41,6 +44,20 @@ const DetailSupplier = () => {
         }
     };
 
+    const fetchSupplier = async () => {
+        try {
+            const response = await supplierService.getSupplierById(Number(id));
+            if (response.code === 1000) {
+                setSupplier(response.result as Supplier);
+            }
+        } catch (error) {
+            console.error("Có lỗi xảy ra:", error);
+            toast.error("Có lỗi xảy ra khi lấy thông tin shop");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const fetchClaimedVouchers = async () => {
         try {
             const profileId = localStorage.getItem("profileId");
@@ -57,6 +74,7 @@ const DetailSupplier = () => {
     };
 
     const refreshVouchers = async () => {
+        await fetchSupplier();
         await fetchVouchers();
         if (isLoggedIn) {
             await fetchClaimedVouchers();
@@ -191,7 +209,7 @@ const DetailSupplier = () => {
                                         WebkitBoxOrient: "vertical",
                                         WebkitLineClamp: "2"
                                     }}>
-                                        ZIYOU
+                                        {supplier?.name}
                                     </div>
                                     {/* Online */}
                                     <div style={{

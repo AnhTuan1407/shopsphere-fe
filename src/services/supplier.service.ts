@@ -13,7 +13,20 @@ const supplierService = {
         return response.data;
     },
 
-    
+    searchSupplierByName: async (name: string): Promise<ApiResponse> => {
+        const response = await api.get(`/suppliers/search?name=${name}`);
+        return response.data;
+    },
+
+    countProductBySupplierId: async (id: number): Promise<ApiResponse> => {
+        const response = await api.get(`/products/count-product/${id}`);
+        return response.data;
+    },
+
+    getSupplierById: async (id: number): Promise<ApiResponse> => {
+        const response = await api.get(`/suppliers/${id}`);
+        return response.data;
+    },
 }
 
 export default supplierService;

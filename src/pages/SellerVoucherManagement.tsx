@@ -571,6 +571,7 @@ const SellerVoucherManagement = () => {
                                         border: "1px solid #ddd",
                                         borderRadius: "5px",
                                         cursor: "pointer",
+                                        overflow: "hidden",
                                     }}
                                 >
                                     <input
@@ -578,7 +579,28 @@ const SellerVoucherManagement = () => {
                                         checked={newVoucher.applicableProducts.includes(String(product.id))}
                                         onChange={(e) => handleProductSelection(e, String(product.id))}
                                     />
-                                    {product.name}
+                                    <img
+                                        src={product.imageUrl}
+                                        alt="product-img"
+                                        style={{
+                                            width: "40px",
+                                            height: "40px",
+                                            objectFit: "cover",
+                                            borderRadius: "4px",
+                                            flexShrink: 0,
+                                        }}
+                                    />
+                                    <span
+                                        style={{
+                                            whiteSpace: "nowrap",
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                            fontSize: "14px",
+                                            color: "#333",
+                                        }}
+                                    >
+                                        {product.name}
+                                    </span>
                                 </label>
                             ))}
                         </div>

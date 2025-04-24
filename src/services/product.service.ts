@@ -37,6 +37,11 @@ const productService = {
         const response = await api.get(`/products/by-category?id=${id}`);
         return response.data;
     },
+
+    searchProduct: async (keyword: string): Promise<ApiResponse> => {
+        const response = await api.get(`/products/search?name=${keyword}`);
+        return response.data;
+    },
 };
 
 export default productService;
