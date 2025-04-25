@@ -11,6 +11,7 @@ const CardProductVariant = ({
     color,
     size,
     imageUrl,
+    version,
     price,
     availableQuantity,
     rating,
@@ -68,7 +69,17 @@ const CardProductVariant = ({
                     textOverflow: "ellipsis",
                     fontSize: "10px"
                 }}>
-                    {color || size || ""}
+                    <div
+                        style={{
+                            flex: 1,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            fontSize: "10px",
+                        }}
+                    >
+                        {color || size || version || "..."}
+                    </div>
                 </div>
             </div>
         </>
