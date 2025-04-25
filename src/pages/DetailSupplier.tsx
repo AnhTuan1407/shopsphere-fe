@@ -99,7 +99,8 @@ const DetailSupplier = () => {
                 backgroundColor: "#fff",
                 width: "100%",
                 boxShadow: "0 1px 1px rgba(0, 0, 0, .05)",
-                padding: "1.25rem 0"
+                padding: "1.25rem 0",
+                marginBottom: "1.25rem"
             }}>
                 {/* Thông tin supplier */}
                 <div style={{
@@ -372,6 +373,10 @@ const DetailSupplier = () => {
                     <p></p>
                 </div>
             )}
+
+            <div>
+                
+            </div>
         </>
     )
 }

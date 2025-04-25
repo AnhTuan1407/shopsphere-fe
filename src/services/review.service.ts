@@ -51,6 +51,16 @@ const reviewService = {
         });
         return response.data;
     },
+
+    countReviewByProductId: async (id: number): Promise<ApiResponse> => {
+        const response = await api.get(`/reviews/count/by-product/${id}`);
+        return response.data;
+    },
+
+    averageRatingByProductId: async (id: number): Promise<ApiResponse> => {
+        const response = await api.get(`/reviews/average/by-product/${id}`);
+        return response.data;
+    },
 }
 
 export default reviewService;
