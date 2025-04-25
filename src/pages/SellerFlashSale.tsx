@@ -256,7 +256,7 @@ const SellerFlashSale = () => {
                                                         value={selected?.discountValue}
                                                         onChange={e => handleChange(product.id!, "discountValue", Number(e.target.value))}
                                                         min={0}
-                                                        style={{ padding: "0.3rem", borderRadius: "4px", border: "1px solid #ccc", width: "100%" }}
+                                                        style={{ padding: "0.3rem", borderRadius: "4px", border: "1px solid #ccc", width: "94.5%" }}
                                                     />
                                                 </label>
 
@@ -267,7 +267,7 @@ const SellerFlashSale = () => {
                                                         value={selected?.totalQuantity}
                                                         onChange={e => handleChange(product.id!, "totalQuantity", Number(e.target.value))}
                                                         min={1}
-                                                        style={{ padding: "0.3rem", borderRadius: "4px", border: "1px solid #ccc", width: "100%" }}
+                                                        style={{ padding: "0.3rem", borderRadius: "4px", border: "1px solid #ccc", width: "94.5%" }}
                                                     />
                                                 </label>
 
@@ -278,7 +278,7 @@ const SellerFlashSale = () => {
                                                         value={selected?.maxPerUser}
                                                         onChange={e => handleChange(product.id!, "maxPerUser", Number(e.target.value))}
                                                         min={1}
-                                                        style={{ padding: "0.3rem", borderRadius: "4px", border: "1px solid #ccc", width: "100%" }}
+                                                        style={{ padding: "0.3rem", borderRadius: "4px", border: "1px solid #ccc", width: "94.5%" }}
                                                     />
                                                 </label>
                                             </div>

@@ -30,6 +30,35 @@ const SellerProductManagement = () => {
     const [variants, setVariants] = useState<ProductVariants[]>([]);
     const [isEditPopupVisible, setIsEditPopupVisible] = useState(false);
 
+    const [isAddVariantPopupVisible, setIsAddVariantPopupVisible] = useState(false);
+
+    const fields: (keyof typeof newVariantData)[] = ["color", "size", "version", "price", "availableQuantity"];
+    const getLabel = (field: any): string => {
+        switch (field) {
+            case "color":
+                return "Màu sắc";
+            case "size":
+                return "Kích thước";
+            case "version":
+                return "Phiên bản";
+            case "price":
+                return "Giá bán";
+            case "availableQuantity":
+                return "Số lượng tồn kho";
+            default:
+                return field;
+        }
+    }
+
+    // State để lưu dữ liệu biến thể mới
+    const [newVariantData, setNewVariantData] = useState({
+        color: '',
+        size: '',
+        version: '',
+        imageUrl: '',
+        price: 0,
+        availableQuantity: 0
+    });
 
     useEffect(() => {
         const fetchSupplierAndProducts = async () => {
@@ -152,9 +181,54 @@ const SellerProductManagement = () => {
         }
     };
 
-    const handleAddVariant = () => {
-        // Mở form thêm mới variant (có thể popup nhỏ khác hoặc inline form)
-        console.log("Thêm mới variant cho:", selectedProduct?.name);
+    const handleBtnAddVariant = () => {
+        setIsAddVariantPopupVisible(true);
+    };
+
+    const handleCloseVariantPopup = () => {
+        setIsAddVariantPopupVisible(false);
+        setNewVariantData({
+            color: '',
+            size: '',
+            version: '',
+            imageUrl: '',
+            price: 0,
+            availableQuantity: 0,
+        });
+    };
+
+    const handleAddVariantSubmit = async () => {
+        try {
+            let uploadedUrl = "";
+
+            try {
+                if (imageFile) {
+                    const base64 = await uploadService.toBase64(imageFile);
+                    uploadedUrl = await uploadService.uploadToCloudinary(base64);
+                }
+            } catch (err) {
+                console.error("Upload error:", err);
+                toast.error("Có lỗi khi upload ảnh");
+                return;
+            }
+
+            newVariantData.imageUrl = uploadedUrl;
+
+            const request = {
+                ...newVariantData,
+                productId: selectedProduct?.id,
+            }
+            const response = await productService.createProductVariant(request);
+            if (response.code === 1000) {
+                toast.success("Thêm mới biến thể thành công");
+                setVariants((prev) => [...prev, response.result as ProductVariants]);
+            } else {
+                toast.error(response.message);
+            }
+        } catch (error) {
+            toast.error("Có lỗi xảy ra");
+        }
+        handleCloseVariantPopup();
     };
 
 
@@ -695,6 +769,7 @@ const SellerProductManagement = () => {
                 )}
             </div>
 
+            {/* Popup detail thông tin sản phẩm */}
             {isEditPopupVisible && selectedProduct && (
                 <div style={{
                     position: 'fixed',
@@ -865,7 +940,7 @@ const SellerProductManagement = () => {
                                             color: '#1f2937'
                                         }}>Danh sách biến thể</h4>
                                         <button
-                                            onClick={() => handleAddVariant()}
+                                            onClick={handleBtnAddVariant}
                                             style={{
                                                 padding: '8px 16px',
                                                 backgroundColor: '#2563eb',
@@ -885,7 +960,7 @@ const SellerProductManagement = () => {
                                             <svg xmlns="http://www.w3.org/2000/svg" style={{ height: '20px', width: '20px' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                             </svg>
-                                            Thêm variant
+                                            Thêm biến thể mới
                                         </button>
                                     </div>
 
@@ -895,119 +970,203 @@ const SellerProductManagement = () => {
                                             flexDirection: 'column',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            padding: '32px 0',
+                                            padding: '40px 0',
                                             textAlign: 'center',
                                             backgroundColor: '#f9fafb',
-                                            borderRadius: '8px'
+                                            borderRadius: '12px',
+                                            border: '1px dashed #d1d5db'
                                         }}>
-                                            <svg xmlns="http://www.w3.org/2000/svg" style={{ height: '48px', width: '48px', color: '#9ca3af', marginBottom: '8px' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <svg xmlns="http://www.w3.org/2000/svg" style={{ height: '56px', width: '56px', color: '#9ca3af', marginBottom: '16px' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                                             </svg>
-                                            <p style={{ color: '#4b5563' }}>Chưa có biến thể nào cho sản phẩm này</p>
+                                            <p style={{ color: '#4b5563', fontSize: '16px', fontWeight: '500' }}>Chưa có biến thể nào cho sản phẩm này</p>
                                         </div>
                                     ) : (
                                         <div style={{
                                             display: 'flex',
                                             flexDirection: 'column',
-                                            gap: '12px',
-                                            maxHeight: '400px',
+                                            gap: '16px',
+                                            maxHeight: '500px',
                                             overflowY: 'auto',
-                                            paddingRight: '8px'
+                                            paddingRight: '12px',
+                                            scrollbarWidth: 'thin',
+                                            scrollbarColor: '#d1d5db #f3f4f6'
                                         }}>
                                             {variants.map((variant, index) => (
                                                 <div
                                                     key={index}
                                                     style={{
+                                                        gap: '24px',
+                                                        alignItems: 'center',
                                                         padding: '16px',
                                                         border: '1px solid #e5e7eb',
-                                                        borderRadius: '8px',
+                                                        borderRadius: '12px',
                                                         backgroundColor: '#fff',
-                                                        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-                                                        transition: 'border-color 0.2s, box-shadow 0.2s'
+                                                        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+                                                        transition: 'all 0.2s ease'
                                                     }}
                                                     onMouseOver={(e) => {
                                                         e.currentTarget.style.borderColor = '#93c5fd';
-                                                        e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                                                        e.currentTarget.style.boxShadow = '0 4px 12px -2px rgba(37, 99, 235, 0.15)';
                                                     }}
                                                     onMouseOut={(e) => {
                                                         e.currentTarget.style.borderColor = '#e5e7eb';
-                                                        e.currentTarget.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)';
+                                                        e.currentTarget.style.boxShadow = '0 1px 3px 0 rgba(0, 0, 0, 0.1)';
                                                     }}
                                                 >
                                                     <div style={{
-                                                        display: 'grid',
-                                                        gridTemplateColumns: 'repeat(2, 1fr)',
-                                                        gap: '12px'
+                                                        minWidth: '100px',
+                                                        width: '100px',
+                                                        height: '100px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        padding: '4px',
+                                                        backgroundColor: '#f9fafb',
+                                                        borderRadius: '8px'
                                                     }}>
-                                                        <div>
-                                                            <p style={{ fontSize: '14px', color: '#6b7280' }}>Màu sắc</p>
-                                                            <p style={{ fontWeight: '500', color: '#1f2937' }}>{variant.color || "—"}</p>
-                                                        </div>
-                                                        <div>
-                                                            <p style={{ fontSize: '14px', color: '#6b7280' }}>Kích thước</p>
-                                                            <p style={{ fontWeight: '500', color: '#1f2937' }}>{variant.size || "—"}</p>
-                                                        </div>
-                                                        <div>
-                                                            <p style={{ fontSize: '14px', color: '#6b7280' }}>Giá bán</p>
-                                                            <p style={{ fontWeight: '500', color: '#1f2937' }}>{variant.price?.toLocaleString() || 0}₫</p>
-                                                        </div>
-                                                        <div>
-                                                            <p style={{ fontSize: '14px', color: '#6b7280' }}>Tồn kho</p>
-                                                            <p style={{ fontWeight: '500', color: '#1f2937' }}>{variant.availableQuantity || 0}</p>
-                                                        </div>
+                                                        <img
+                                                            src={variant.imageUrl}
+                                                            alt="Biến thể sản phẩm"
+                                                            style={{
+                                                                maxWidth: '100%',
+                                                                maxHeight: '100%',
+                                                                objectFit: 'contain',
+                                                                borderRadius: '6px'
+                                                            }}
+                                                        />
                                                     </div>
                                                     <div style={{
-                                                        marginTop: '12px',
+                                                        flex: 1,
                                                         display: 'flex',
-                                                        justifyContent: 'flex-end',
-                                                        gap: '8px'
+                                                        flexDirection: 'column',
+                                                        justifyContent: 'space-between',
+                                                        minHeight: '100px'
                                                     }}>
-                                                        <button
-                                                            style={{
-                                                                padding: '6px',
-                                                                color: '#6b7280',
-                                                                backgroundColor: 'transparent',
-                                                                border: 'none',
-                                                                borderRadius: '4px',
-                                                                cursor: 'pointer',
-                                                                transition: 'color 0.2s, background-color 0.2s'
-                                                            }}
-                                                            onMouseOver={(e) => {
-                                                                e.currentTarget.style.color = '#2563eb';
-                                                                e.currentTarget.style.backgroundColor = '#eff6ff';
-                                                            }}
-                                                            onMouseOut={(e) => {
-                                                                e.currentTarget.style.color = '#6b7280';
-                                                                e.currentTarget.style.backgroundColor = 'transparent';
-                                                            }}
-                                                        >
-                                                            <svg xmlns="http://www.w3.org/2000/svg" style={{ height: '16px', width: '16px' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                                            </svg>
-                                                        </button>
-                                                        <button
-                                                            style={{
-                                                                padding: '6px',
-                                                                color: '#6b7280',
-                                                                backgroundColor: 'transparent',
-                                                                border: 'none',
-                                                                borderRadius: '4px',
-                                                                cursor: 'pointer',
-                                                                transition: 'color 0.2s, background-color 0.2s'
-                                                            }}
-                                                            onMouseOver={(e) => {
-                                                                e.currentTarget.style.color = '#dc2626';
-                                                                e.currentTarget.style.backgroundColor = '#fee2e2';
-                                                            }}
-                                                            onMouseOut={(e) => {
-                                                                e.currentTarget.style.color = '#6b7280';
-                                                                e.currentTarget.style.backgroundColor = 'transparent';
-                                                            }}
-                                                        >
-                                                            <svg xmlns="http://www.w3.org/2000/svg" style={{ height: '16px', width: '16px' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                            </svg>
-                                                        </button>
+                                                        <div style={{
+                                                            display: 'grid',
+                                                            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                                                            gap: '12px',
+                                                            alignItems: 'start'
+                                                        }}>
+                                                            {variant.color && (
+                                                                <div style={{ padding: '4px 0' }}>
+                                                                    <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '4px', fontWeight: '400' }}>Màu sắc</p>
+                                                                    <p style={{ fontWeight: '600', color: '#1f2937', fontSize: '15px', lineHeight: '1.4' }}>{variant.color}</p>
+                                                                </div>
+                                                            )}
+                                                            {variant.size && (
+                                                                <div style={{ padding: '4px 0' }}>
+                                                                    <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '4px', fontWeight: '400' }}>Kích thước</p>
+                                                                    <p style={{ fontWeight: '600', color: '#1f2937', fontSize: '15px', lineHeight: '1.4' }}>{variant.size}</p>
+                                                                </div>
+                                                            )}
+                                                            {variant.version && (
+                                                                <div style={{ padding: '4px 0' }}>
+                                                                    <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '4px', fontWeight: '400' }}>Phiên bản</p>
+                                                                    <p style={{ fontWeight: '600', color: '#1f2937', fontSize: '15px', lineHeight: '1.4' }}>{variant.version}</p>
+                                                                </div>
+                                                            )}
+                                                            <div style={{ padding: '4px 0' }}>
+                                                                <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '4px', fontWeight: '400' }}>Giá bán</p>
+                                                                <p style={{ fontWeight: '600', color: '#1f2937', fontSize: '15px', lineHeight: '1.4' }}>{variant.price?.toLocaleString() || 0}₫</p>
+                                                            </div>
+                                                            <div style={{ padding: '4px 0' }}>
+                                                                <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '4px', fontWeight: '400' }}>Tồn kho</p>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                    <p style={{ fontWeight: '600', color: '#1f2937', fontSize: '15px', lineHeight: '1.4' }}>
+                                                                        {variant.availableQuantity || 0}
+                                                                    </p>
+                                                                    {variant.availableQuantity! <= 5 && variant.availableQuantity! > 0 && (
+                                                                        <span style={{
+                                                                            fontSize: '12px',
+                                                                            color: '#b91c1c',
+                                                                            backgroundColor: '#fee2e2',
+                                                                            padding: '2px 8px',
+                                                                            borderRadius: '9999px',
+                                                                            whiteSpace: 'nowrap'
+                                                                        }}>
+                                                                            Sắp hết
+                                                                        </span>
+                                                                    )}
+                                                                    {variant.availableQuantity === 0 && (
+                                                                        <span style={{
+                                                                            fontSize: '12px',
+                                                                            color: '#7f1d1d',
+                                                                            backgroundColor: '#fecaca',
+                                                                            padding: '2px 8px',
+                                                                            borderRadius: '9999px',
+                                                                            whiteSpace: 'nowrap'
+                                                                        }}>
+                                                                            Hết hàng
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            justifyContent: 'flex-end',
+                                                            gap: '8px',
+                                                            marginTop: '12px',
+                                                            borderTop: '1px solid #f3f4f6',
+                                                            paddingTop: '12px'
+                                                        }}>
+                                                            <button
+                                                                style={{
+                                                                    padding: '6px 12px',
+                                                                    color: '#4b5563',
+                                                                    backgroundColor: '#f3f4f6',
+                                                                    border: 'none',
+                                                                    borderRadius: '6px',
+                                                                    cursor: 'pointer',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '6px',
+                                                                    fontSize: '14px',
+                                                                    fontWeight: '500',
+                                                                    transition: 'all 0.2s ease'
+                                                                }}
+                                                                onMouseOver={(e) => {
+                                                                    e.currentTarget.style.color = '#2563eb';
+                                                                    e.currentTarget.style.backgroundColor = '#eff6ff';
+                                                                }}
+                                                                onMouseOut={(e) => {
+                                                                    e.currentTarget.style.color = '#4b5563';
+                                                                    e.currentTarget.style.backgroundColor = '#f3f4f6';
+                                                                }}
+                                                            >
+                                                                <span style={{ fontSize: '16px' }}>✏️</span>
+                                                                <span>Sửa</span>
+                                                            </button>
+                                                            <button
+                                                                style={{
+                                                                    padding: '6px 12px',
+                                                                    color: '#4b5563',
+                                                                    backgroundColor: '#f3f4f6',
+                                                                    border: 'none',
+                                                                    borderRadius: '6px',
+                                                                    cursor: 'pointer',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '6px',
+                                                                    fontSize: '14px',
+                                                                    fontWeight: '500',
+                                                                    transition: 'all 0.2s ease'
+                                                                }}
+                                                                onMouseOver={(e) => {
+                                                                    e.currentTarget.style.color = '#dc2626';
+                                                                    e.currentTarget.style.backgroundColor = '#fee2e2';
+                                                                }}
+                                                                onMouseOut={(e) => {
+                                                                    e.currentTarget.style.color = '#4b5563';
+                                                                    e.currentTarget.style.backgroundColor = '#f3f4f6';
+                                                                }}
+                                                            >
+                                                                <span style={{ fontSize: '16px' }}>🗑️</span>
+                                                                <span>Xóa</span>
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             ))}
@@ -1058,6 +1217,230 @@ const SellerProductManagement = () => {
                             </button>
                         </div>
                     </div>
+
+                    {/* Popup tạo mới biến thể */}
+                    {isAddVariantPopupVisible && (
+                        <div
+                            style={{
+                                position: "fixed",
+                                top: "0",
+                                left: "0",
+                                width: "100%",
+                                height: "100%",
+                                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                zIndex: "2000",
+                            }}
+                        >
+                            <div
+                                style={{
+                                    backgroundColor: "#fff",
+                                    padding: "2rem",
+                                    borderRadius: "8px",
+                                    width: "500px",
+                                    maxWidth: "90%",
+                                    maxHeight: "90vh",
+                                    overflowY: "auto",
+                                    boxShadow: "0 10px 25px rgba(0, 0, 0, 0.2)",
+                                }}
+                            >
+                                <h3
+                                    style={{
+                                        marginBottom: "1.5rem",
+                                        textAlign: "center",
+                                        color: "#212121",
+                                        fontSize: "1.25rem",
+                                        fontWeight: "600",
+                                    }}
+                                >
+                                    Thêm biến thể sản phẩm
+                                </h3>
+
+                                {fields.map((field) => (
+                                    <div key={field} style={{ marginBottom: "1rem" }}>
+                                        <label
+                                            style={{
+                                                display: "block",
+                                                marginBottom: "0.5rem",
+                                                color: "#424242",
+                                                fontSize: "0.95rem",
+                                                fontWeight: "500",
+                                            }}
+                                        >
+                                            {getLabel(field)}
+                                        </label>
+                                        <input
+                                            type={field === "price" || field === "availableQuantity" ? "number" : "text"}
+                                            name={field}
+                                            value={newVariantData[field]}
+                                            onChange={(e) =>
+                                                setNewVariantData((prev) => ({
+                                                    ...prev,
+                                                    [field]:
+                                                        field === "price" || field === "availableQuantity"
+                                                            ? Number(e.target.value)
+                                                            : e.target.value,
+                                                }))
+                                            }
+                                            placeholder={`Nhập ${getLabel(field)}`}
+                                            style={{
+                                                width: "100%",
+                                                padding: "0.75rem",
+                                                border: "1px solid #e0e0e0",
+                                                borderRadius: "4px",
+                                                fontSize: "0.95rem",
+                                                outline: "none",
+                                                transition: "border-color 0.2s",
+                                            }}
+                                            onFocus={(e) => {
+                                                e.target.style.borderColor = "#ee4d2d";
+                                            }}
+                                            onBlur={(e) => {
+                                                e.target.style.borderColor = "#e0e0e0";
+                                            }}
+                                        />
+                                    </div>
+                                ))}
+
+                                <div style={{ marginBottom: "1.5rem" }}>
+                                    <label style={{
+                                        display: "block",
+                                        marginBottom: "0.5rem",
+                                        color: "#424242",
+                                        fontSize: "0.95rem",
+                                        fontWeight: "500"
+                                    }}>
+                                        Hình ảnh<span style={{ color: "#ee4d2d" }}>*</span>
+                                    </label>
+                                    <div
+                                        style={{
+                                            border: "1px dashed #e0e0e0",
+                                            borderRadius: "4px",
+                                            padding: "1.25rem",
+                                            textAlign: "center",
+                                            backgroundColor: "#fafafa",
+                                            cursor: "pointer",
+                                            transition: "border-color 0.2s, background-color 0.2s",
+                                            marginBottom: "1rem"
+                                        }}
+                                        onMouseOver={(e) => {
+                                            e.currentTarget.style.borderColor = "#ee4d2d";
+                                            e.currentTarget.style.backgroundColor = "#fff8f6";
+                                        }}
+                                        onMouseOut={(e) => {
+                                            e.currentTarget.style.borderColor = "#e0e0e0";
+                                            e.currentTarget.style.backgroundColor = "#fafafa";
+                                        }}
+                                    >
+                                        <input
+                                            type="file"
+                                            onChange={handleImageChange}
+                                            style={{
+                                                display: "none"
+                                            }}
+                                            id="product-image"
+                                        />
+                                        <label htmlFor="product-image" style={{
+                                            cursor: "pointer",
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            alignItems: "center"
+                                        }}>
+                                            <div style={{
+                                                fontSize: "2rem",
+                                                color: "#bdbdbd",
+                                                marginBottom: "0.5rem"
+                                            }}>+</div>
+                                            <div style={{
+                                                fontSize: "0.9rem",
+                                                color: "#757575"
+                                            }}>Tải ảnh lên</div>
+                                        </label>
+                                    </div>
+                                </div>
+                                {imagePreview && (
+                                    <div style={{
+                                        marginBottom: "1.5rem",
+                                        textAlign: "center"
+                                    }}>
+                                        <img
+                                            src={imagePreview}
+                                            alt="Preview"
+                                            style={{
+                                                maxWidth: "200px",
+                                                maxHeight: "200px",
+                                                borderRadius: "6px",
+                                                boxShadow: "0 2px 5px rgba(0,0,0,0.1)"
+                                            }}
+                                        />
+                                    </div>
+                                )}
+
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        justifyContent: "flex-end",
+                                        gap: "1rem",
+                                        marginTop: "2rem",
+                                    }}
+                                >
+                                    <button
+                                        style={{
+                                            color: "#616161",
+                                            backgroundColor: "#f5f5f5",
+                                            padding: "0.75rem 1.25rem",
+                                            fontSize: "0.9rem",
+                                            fontWeight: "500",
+                                            border: "none",
+                                            borderRadius: "4px",
+                                            cursor: "pointer",
+                                            transition: "background-color 0.2s",
+                                        }}
+                                        onClick={handleCloseVariantPopup}
+                                        onMouseOver={(e) => {
+                                            e.currentTarget.style.backgroundColor = "#e0e0e0";
+                                        }}
+                                        onMouseOut={(e) => {
+                                            e.currentTarget.style.backgroundColor = "#f5f5f5";
+                                        }}
+                                    >
+                                        Hủy
+                                    </button>
+                                    <button
+                                        style={{
+                                            color: "#fff",
+                                            backgroundColor: "#ee4d2d",
+                                            padding: "0.75rem 1.25rem",
+                                            fontSize: "0.9rem",
+                                            fontWeight: "500",
+                                            border: "none",
+                                            borderRadius: "4px",
+                                            cursor: "pointer",
+                                            boxShadow: "0 2px 4px rgba(238, 77, 45, 0.2)",
+                                            transition: "background-color 0.2s, transform 0.1s",
+                                        }}
+                                        onClick={handleAddVariantSubmit}
+                                        onMouseOver={(e) => {
+                                            e.currentTarget.style.backgroundColor = "#f05d40";
+                                        }}
+                                        onMouseOut={(e) => {
+                                            e.currentTarget.style.backgroundColor = "#ee4d2d";
+                                        }}
+                                        onMouseDown={(e) => {
+                                            e.currentTarget.style.transform = "translateY(1px)";
+                                        }}
+                                        onMouseUp={(e) => {
+                                            e.currentTarget.style.transform = "translateY(0)";
+                                        }}
+                                    >
+                                        Thêm biến thể
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Add keyframe animation in a style tag */}
                     <style>{`

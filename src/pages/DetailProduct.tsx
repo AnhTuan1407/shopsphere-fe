@@ -27,7 +27,7 @@ const DetailProduct = () => {
     const [quantity, setQuantity] = useState(1);
     const [reviewCount, setReviewCount] = useState<any>(0);
     const [averageRating, setAverageRating] = useState<any>(0);
-
+    const [imgView, setImgView] = useState<any>();
     const { cartItemCount, setCartItemCount } = useCart();
 
     const { id } = useParams();
@@ -89,6 +89,7 @@ const DetailProduct = () => {
     };
 
     const handleSelectVariant = (variant: ProductVariants) => {
+        setImgView(variant.imageUrl);
         setSelectedVariant(variant);
         setSelectedVariantId(variant?.id ?? null);
     };
@@ -192,7 +193,7 @@ const DetailProduct = () => {
                         flexBasis: "40%",
                         padding: "15px"
                     }}>
-                        <img src={product.imageUrl} alt="img-product" style={{
+                        <img src={imgView ? imgView : product.imageUrl} alt="img-product" style={{
                             objectFit: "contain",
                             width: "400px",
                         }} />
@@ -423,7 +424,8 @@ const DetailProduct = () => {
                                         id={variant.id}
                                         color={variant.color}
                                         size={variant.size}
-                                        imageUrl={product.imageUrl}
+                                        imageUrl={variant.imageUrl}
+                                        version={variant.version}
                                         price={variant.price}
                                         availableQuantity={variant.availableQuantity}
                                         rating={variant.rating}
