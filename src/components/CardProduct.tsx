@@ -55,7 +55,7 @@ const CardProduct = ({
                 <img
                     src={imageUrl}
                     alt={name}
-                    style={{ width: "100%", objectFit: "cover" }}
+                    style={{ width: "100%", maxHeight: "175px", objectFit: "cover" }}
                 />
 
                 <div

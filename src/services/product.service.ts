@@ -42,6 +42,16 @@ const productService = {
         const response = await api.get(`/products/search?name=${keyword}`);
         return response.data;
     },
+
+    createProductVariant: async (request: any): Promise<ApiResponse> => {
+        const response = await api.post("/product-variants", request);
+        return response.data;
+    },
+
+    getVariantByProductId: async (id: number): Promise<any> => {
+        const response = await api.get(`/product-variants/${id}`);
+        return response.data;
+    },
 };
 
 export default productService;

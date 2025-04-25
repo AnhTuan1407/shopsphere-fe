@@ -13,6 +13,8 @@ import ProductVariants from "../models/productVariants.model";
 import ReviewPage from "../pages/ReviewPage";
 import cartService from "../services/cart.service";
 import productService from "../services/product.service";
+import reviewService from "../services/review.service";
+import StarRating from "../components/StarRating";
 
 const DetailProduct = () => {
     const navigate = useNavigate();
@@ -23,6 +25,8 @@ const DetailProduct = () => {
     const [selectedVariant, setSelectedVariant] = useState(product.variants?.[0]);
     const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
     const [quantity, setQuantity] = useState(1);
+    const [reviewCount, setReviewCount] = useState<any>(0);
+    const [averageRating, setAverageRating] = useState<any>(0);
 
     const { cartItemCount, setCartItemCount } = useCart();
 
@@ -40,7 +44,31 @@ const DetailProduct = () => {
             }
         }
 
+        const fetchCountReview = async () => {
+            try {
+                const response = await reviewService.countReviewByProductId(Number(id));
+                if (response.code === 1000) {
+                    setReviewCount(response.result as Number);
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
+        const fetchAverageRating = async () => {
+            try {
+                const response = await reviewService.averageRatingByProductId(Number(id));
+                if (response.code === 1000) {
+                    setAverageRating(response.result as Number);
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
         fetchProduct();
+        fetchCountReview();
+        fetchAverageRating();
     }, [])
 
     const getDeliveryDateRange = () => {
@@ -199,60 +227,16 @@ const DetailProduct = () => {
                                 }}>
 
                                     {/* Rating */}
-                                    <div style={{
-                                        borderBottom: "1px solid #222",
-                                        paddingBottom: "1px",
-                                        marginRight: "1px",
-                                        fontWeight: "500"
-                                    }}>
-                                        4.7
-                                    </div>
-                                    <div style={{ marginLeft: "5px", display: "flex", alignItems: "center" }}>
+                                    <div style={{ display: "flex", alignItems: "center" }}>
                                         <div style={{
-                                            backgroundImage: `url(${starRating})`,
-                                            backgroundRepeat: "no-repeat",
-                                            backgroundSize: "contain",
-                                            width: "13px",
-                                            height: "13px",
+                                            borderBottom: "1px solid #222",
+                                            paddingBottom: "1px",
+                                            marginRight: "5px",
+                                            fontWeight: "500"
                                         }}>
-
+                                            {averageRating?.toFixed(1)}
                                         </div>
-                                        <div style={{
-                                            backgroundImage: `url(${starRating})`,
-                                            backgroundRepeat: "no-repeat",
-                                            backgroundSize: "contain",
-                                            width: "13px",
-                                            height: "13px",
-                                        }}>
-
-                                        </div>
-                                        <div style={{
-                                            backgroundImage: `url(${starRating})`,
-                                            backgroundRepeat: "no-repeat",
-                                            backgroundSize: "contain",
-                                            width: "13px",
-                                            height: "13px",
-                                        }}>
-
-                                        </div>
-                                        <div style={{
-                                            backgroundImage: `url(${starRating})`,
-                                            backgroundRepeat: "no-repeat",
-                                            backgroundSize: "contain",
-                                            width: "13px",
-                                            height: "13px",
-                                        }}>
-
-                                        </div>
-                                        <div style={{
-                                            backgroundImage: `url(${starRating})`,
-                                            backgroundRepeat: "no-repeat",
-                                            backgroundSize: "contain",
-                                            width: "13px",
-                                            height: "13px",
-                                        }}>
-
-                                        </div>
+                                        <StarRating rating={Number(averageRating)} />
                                     </div>
                                 </div>
 
@@ -269,7 +253,7 @@ const DetailProduct = () => {
                                         paddingBottom: "1px",
                                         margin: "0 10px",
                                     }}>
-                                        13
+                                        {reviewCount}
                                     </div>
                                     <div>
                                         Đánh giá
@@ -287,7 +271,11 @@ const DetailProduct = () => {
                                         borderBottom: "1px solid #222",
                                         paddingBottom: "1px",
                                         margin: "0 10px",
-                                    }}>899</div>
+                                    }}>
+                                        {product.variants && product.variants.length > 0 && product.variants[0].quantitySold
+                                            ? `${product.variants.reduce((total, variant) => total + (variant.quantitySold || 0), 0)}`
+                                            : 0}
+                                    </div>
                                     <div>Sold</div>
                                 </div>
                             </div>
