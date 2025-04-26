@@ -27,6 +27,8 @@ const CartPage = () => {
     });
 
     const [totalPrice, setTotalPrice] = useState<number>(0);
+    const [totalUnitPrice, setTotalUnitPrice] = useState<number>(0);
+    const [itemPrice, setItemPrice] = useState<number>(0);
 
     useEffect(() => {
         const storedProfileId = localStorage.getItem("profileId");
@@ -58,9 +60,11 @@ const CartPage = () => {
 
                     return {
                         ...cartItem,
+                        productId: product.id,
                         productName: product.name || "",
                         productImage: product.imageUrl || "",
                         categoryName: product.category?.name || "",
+                        productVariantId: variant.id,
                         variantColor: variant.color || "",
                         variantSize: variant.size || "",
                         variantPrice: variant.price || 0,
@@ -68,6 +72,7 @@ const CartPage = () => {
                         supplierId: product.supplier?.id || "",
                         supplierImage: supplier.imageUrl || "",
                         quantity: cartItem.quantity || 1,
+                        variantImage: variant.imageUrl
                     };
                 });
 
@@ -95,10 +100,9 @@ const CartPage = () => {
     // Nhóm sản phẩm theo supplier
     const groupedCartItems = groupCartItemsBySupplier(cart.cartItemsMapper!);
 
-    const handleSelectItem = async (id: number, isSelected: boolean) => {
+    const handleSelectItem = async (id: number, isSelected: boolean, itemTotalPrice: number, unitPrice: number) => {
         try {
             await cartService.selectCartItem(id);
-
             setCart((prevCart) => {
                 const updatedCartItems = (prevCart.cartItemsMapper ?? []).map((item) => {
                     if (item.id === id) {
@@ -109,10 +113,10 @@ const CartPage = () => {
 
                 const updatedTotalPrice = updatedCartItems
                     .filter((item) => item.selected)
-                    .reduce((total, item) => total + item.quantity * item.variantPrice, 0);
+                    .reduce((total, item) => total + itemTotalPrice, 0);
 
                 setTotalPrice(updatedTotalPrice);
-
+                setItemPrice(unitPrice);
                 return {
                     ...prevCart,
                     cartItemsMapper: updatedCartItems,
@@ -179,7 +183,7 @@ const CartPage = () => {
             return;
         }
 
-        navigate("/order", { state: { selectedItems } });
+        navigate("/order", { state: { selectedItems, totalPrice, itemPrice } });
     }
 
     return (
@@ -238,6 +242,8 @@ const CartPage = () => {
                                 key={cartItem.id}
                                 id={cartItem.id}
                                 productName={cartItem.productName}
+                                productId={cartItem.productId}
+                                productVariantId={cartItem.productVariantId}
                                 productImage={cartItem.productImage}
                                 categoryName={cartItem.categoryName}
                                 variantColor={cartItem.variantColor}
@@ -245,8 +251,9 @@ const CartPage = () => {
                                 variantPrice={cartItem.variantPrice}
                                 quantity={cartItem.quantity}
                                 selected={cartItem.selected}
+                                variantImage={cartItem.variantImage}
                                 onUpdateQuantity={handleUpdateQuantity}
-                                onSelectItem={(isSelected) => handleSelectItem(isSelected, cartItem.id)}
+                                onSelectItem={(id, isSelected, price, unitPrice) => handleSelectItem(id, isSelected, price, unitPrice)}
                                 onDeleteItem={handleDeleteItem}
                             />
                         ))}

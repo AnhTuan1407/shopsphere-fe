@@ -4,13 +4,24 @@ import CardCategory from "../components/CardCategory";
 import CardProduct from "../components/CardProduct";
 import Category from "../models/category.model";
 import Product from "../models/product.model";
+import FlashSale from "../models/flashSale.model";
 import categoryService from "../services/category.service";
 import productService from "../services/product.service";
+import saleService from "../services/sale.service";
+import { toast } from 'react-toastify';
+import DynamicBanner from "../components/DynamicBanner";
 
 const HomePage = () => {
-
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
+    const [flashSales, setFlashSales] = useState<FlashSale[]>([]);
+    const [activeFlashSale, setActiveFlashSale] = useState<FlashSale | null>(null);
+    const [flashSaleProducts, setFlashSaleProducts] = useState<Product[]>([]);
+    const [countdown, setCountdown] = useState<{ hours: number, minutes: number, seconds: number }>({
+        hours: 0,
+        minutes: 0,
+        seconds: 0
+    });
 
     const navigate = useNavigate();
 
@@ -46,6 +57,94 @@ const HomePage = () => {
         fetchProducts();
     }, []);
 
+    // Fetch Flash Sales
+    useEffect(() => {
+        const fetchFlashSales = async () => {
+            try {
+                const response = await saleService.getAllFlashSalesActive();
+                if (response.code === 1000) {
+                    const flashSaleData = response.result as FlashSale[];
+                    setFlashSales(flashSaleData);
+
+                    // Lấy flash sale đầu tiên làm active flash sale (hoặc có thể dùng logic khác để chọn)
+                    if (flashSaleData.length > 0) {
+                        setActiveFlashSale(flashSaleData[0]);
+                    }
+                } else {
+                    toast.error(response.message);
+                }
+            } catch (error) {
+                console.error("Lỗi khi lấy danh sách flash sale:", error);
+                toast.error("Có lỗi xảy ra khi tải flash sale");
+            }
+        };
+
+        fetchFlashSales();
+    }, []);
+
+    // Fetch sản phẩm flash sale khi có active flash sale
+    useEffect(() => {
+        if (activeFlashSale && products.length > 0) {
+            // Lấy các sản phẩm có trong flash sale items
+            const productIdsInFlashSale = activeFlashSale.flashSaleItems.map(item => item.productId);
+            const productsInFlashSale = products.filter(product =>
+                productIdsInFlashSale.includes(product.id!)
+            );
+            setFlashSaleProducts(productsInFlashSale);
+        }
+    }, [activeFlashSale, products]);
+
+    // Đồng hồ đếm ngược
+    useEffect(() => {
+        if (!activeFlashSale) return;
+
+        const updateCountdown = () => {
+            const now = new Date();
+            const endTime = new Date(activeFlashSale.endTime);
+            const timeLeft = endTime.getTime() - now.getTime();
+
+            if (timeLeft <= 0) {
+                // Flash sale đã kết thúc
+                setCountdown({ hours: 0, minutes: 0, seconds: 0 });
+                return;
+            }
+
+            const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+            setCountdown({ hours, minutes, seconds });
+        };
+
+        // Cập nhật đồng hồ đếm ngược ban đầu
+        updateCountdown();
+
+        // Cập nhật đồng hồ đếm ngược mỗi giây
+        const countdownInterval = setInterval(updateCountdown, 1000);
+
+        return () => {
+            clearInterval(countdownInterval);
+        };
+    }, [activeFlashSale]);
+
+    const renderCountdownUnit = (value: number) => (
+        <div style={{
+            backgroundColor: "#FF4D4F",
+            color: "#FFF",
+            borderRadius: "4px",
+            padding: "2px 4px",
+            fontWeight: "bold",
+            fontSize: "16px",
+            minWidth: "28px",
+            textAlign: "center"
+        }}>
+            {value.toString().padStart(2, '0')}
+        </div>
+    );
+
+    const renderCountdownSeparator = () => (
+        <div style={{ color: "#FF4D4F", margin: "0 4px", fontWeight: "bold" }}>:</div>
+    );
 
     return (
         <>
@@ -55,60 +154,7 @@ const HomePage = () => {
                 paddingTop: "10px",
                 paddingBottom: "10px",
             }}>
-                <div style={{
-                    width: "1200px",
-                    margin: "0 auto",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    height: "235px",
-                }}>
-                    {/* Banner */}
-                    <div style={{
-                        flex: "2",
-                        height: "100%",
-                        overflow: "hidden",
-                    }}>
-                        <img
-                            src="/assets/banners/banner-1.jpg"
-                            alt="banner-1"
-                            style={{
-                                width: "100%",
-                                height: "100%",
-                                objectFit: "cover",
-                            }}
-                        />
-                    </div>
-
-                    <div style={{
-                        flex: "1",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                        height: "100%",
-                        marginLeft: "5px"
-                    }}>
-                        <img
-                            src="/assets/banners/banner-2.jpg"
-                            alt="banner-2"
-                            style={{
-                                width: "100%",
-                                height: "calc(50% - 3px)",
-                                objectFit: "cover",
-                                marginBottom: "3px",
-                            }}
-                        />
-                        <img
-                            src="/assets/banners/banner-3.png"
-                            alt="banner-3"
-                            style={{
-                                width: "100%",
-                                height: "calc(50% - 3px)",
-                                objectFit: "cover",
-                            }}
-                        />
-                    </div>
-                </div>
+                <DynamicBanner></DynamicBanner>
 
                 {/* Navbar */}
                 <div style={{
@@ -159,6 +205,74 @@ const HomePage = () => {
                 </div>
             </div>
             <div style={{ height: 'calc(100vh-306px)', padding: '2rem 4rem', overflowY: 'auto' }}>
+                {/* Flash Sale Section */}
+                {activeFlashSale && flashSaleProducts.length > 0 && (
+                    <div style={{
+                        backgroundColor: "#fff",
+                        marginBottom: "1.25rem",
+                    }}>
+                        <div style={{
+                            display: "flex",
+                            alignItems: "center",
+                            padding: "1rem 1.25rem",
+                            borderBottom: "1px solid rgba(0, 0, 0, .05)"
+                        }}>
+                            <div style={{
+                                color: "#ee4d2d",
+                                textTransform: "uppercase",
+                                fontWeight: "500",
+                                fontSize: "18px",
+                                marginRight: "15px"
+                            }}>
+                                FLASH SALE
+                            </div>
+
+                            <div style={{
+                                display: "flex",
+                                alignItems: "center"
+                            }}>
+                                <div style={{ marginRight: "10px", color: "#888" }}>Kết thúc trong</div>
+                                <div style={{ display: "flex", alignItems: "center" }}>
+                                    {renderCountdownUnit(countdown.hours)}
+                                    {renderCountdownSeparator()}
+                                    {renderCountdownUnit(countdown.minutes)}
+                                    {renderCountdownSeparator()}
+                                    {renderCountdownUnit(countdown.seconds)}
+                                </div>
+                            </div>
+
+                            <div style={{
+                                marginLeft: "auto",
+                                color: "#ee4d2d",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center"
+                            }}
+                                onClick={() => navigate('/flash-sales')}>
+                                <span>Xem tất cả</span>
+                                <span style={{ marginLeft: "5px" }}>&#10095;</span>
+                            </div>
+                        </div>
+
+                        <div style={{
+                            display: "flex",
+                            overflowX: "auto",
+                            padding: "1rem",
+                            gap: "0.8rem"
+                        }}>
+                            {flashSaleProducts.map(product => (
+                                <CardProduct
+                                    key={product.id}
+                                    id={product.id}
+                                    name={product.name}
+                                    imageUrl={product.imageUrl}
+                                    variants={product.variants}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 <div style={{
                     backgroundColor: "#fff",
                 }}>
@@ -194,7 +308,6 @@ const HomePage = () => {
                     padding: ".9375rem 2.875rem",
                     borderBottom: "3px solid #ee4d2d",
                     cursor: "pointer",
-
                 }}>
                     Gợi ý hôm nay
                 </div>

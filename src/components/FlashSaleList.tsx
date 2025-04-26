@@ -1,6 +1,5 @@
-import React from "react";
+import FlashSale from "../models/flashSale.model";
 import FlashSaleCard from "./FlashSaleCard";
-import FlashSale from "../models/flashSale.mode";
 type Props = {
     flashSales: FlashSale[]
 }

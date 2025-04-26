@@ -1,4 +1,4 @@
-import FlashSaleItem from "./flashSaleItem";
+import FlashSaleItem from "./flashSaleItem.model";
 
 type FlashSale = {
     id: number,

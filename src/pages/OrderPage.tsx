@@ -53,7 +53,11 @@ const OrderPage = () => {
     // Discount
     const [totalDiscount, setTotalDiscount] = useState(0);
     // Total price
-    const [totalPrice, setTotalPrice] = useState(0);
+    // const [totalPrice, setTotalPrice] = useState(0);
+    const initialPrice = location.state?.totalPrice ?? 0;
+    const [totalPrice, setTotalPrice] = useState<number>(initialPrice || 0);
+    const [unitPrice, setUnitPrice] = useState<number>(location.state?.unitPrice || 0);
+
     // Shipping fee
     const [shippingFee, setShippingFee] = useState<number>(40000);
     const [note, setNote] = useState<string>("");
@@ -109,12 +113,14 @@ const OrderPage = () => {
     // total price
     useEffect(() => {
         const calculateTotalPrice = () => {
-            const total = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-            setTotalPrice(total);
+            if (totalPrice === 0) {
+                const total = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+                setTotalPrice(total);
+            }
         };
 
         calculateTotalPrice();
-    }, [selectedItems]);
+    }, [selectedItems, totalPrice]);
 
     const getDeliveryDateRange = () => {
         const today = new Date();
@@ -215,7 +221,7 @@ const OrderPage = () => {
             } else {
                 // Nếu là voucher loại khác, đặt lại tổng tiền
                 const discount = calculateDiscount(voucherToRemove, orderTotal, shippingFee);
-                setTotalPrice((prev) => prev + discount); // Khôi phục tổng tiền
+                setTotalPrice((prev: any) => prev + discount); // Khôi phục tổng tiền
                 setTotalDiscount((prev) => prev - discount); // Giảm tổng số tiền giảm giá
             }
         } else {
@@ -239,7 +245,7 @@ const OrderPage = () => {
                     setTotalDiscount((prev) => prev - oldDiscount);
                 } else {
                     const oldDiscount = calculateDiscount(existingVoucher, orderTotal, shippingFee);
-                    setTotalPrice((prev) => prev + oldDiscount); // Khôi phục tổng tiền
+                    setTotalPrice((prev: any) => prev + oldDiscount); // Khôi phục tổng tiền
                     setTotalDiscount((prev) => prev - oldDiscount);
                 }
 
@@ -266,7 +272,7 @@ const OrderPage = () => {
             } else {
                 // Nếu là voucher loại khác, tính toán giảm giá cho tổng tiền
                 const discount = calculateDiscount(voucher, orderTotal, shippingFee);
-                setTotalPrice((prev) => Math.max(0, prev - discount)); // Đảm bảo tổng tiền không âm
+                setTotalPrice((prev: any) => Math.max(0, prev - discount)); // Đảm bảo tổng tiền không âm
                 setTotalDiscount((prev) => prev + discount); // Tăng tổng số tiền giảm giá
             }
         }
@@ -545,7 +551,7 @@ const OrderPage = () => {
                                 </div>
 
                                 <div style={{ display: "flex", flex: "2", justifyContent: "flex-end", fontSize: "0.75rem", color: "#222" }}>
-                                    ₫{item.price.toLocaleString("vi-VN")}
+                                    ₫{(totalPrice/item.quantity).toLocaleString("vi-VN")}
                                 </div>
 
                                 <div style={{ display: "flex", flex: "2", justifyContent: "flex-end", fontSize: "0.75rem", color: "#222" }}>
@@ -553,7 +559,7 @@ const OrderPage = () => {
                                 </div>
 
                                 <div style={{ display: "flex", flex: "2", justifyContent: "flex-end", fontSize: "0.75rem", color: "#222" }}>
-                                    ₫{(item.quantity * item.price).toLocaleString("vi-VN")}
+                                    ₫{(totalPrice).toLocaleString("vi-VN")}
                                 </div>
                             </div>
                         ))}

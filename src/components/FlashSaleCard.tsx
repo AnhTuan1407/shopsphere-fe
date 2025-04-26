@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
-import FlashSaleProductCard from "./FlashSaleProductCard";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
-import FlashSale from "../models/flashSale.mode";
+import { useEffect, useState } from "react";
+import FlashSale from "../models/flashSale.model";
+import FlashSaleProductCard from "./FlashSaleProductCard";
 
 dayjs.extend(duration);
 

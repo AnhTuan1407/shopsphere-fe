@@ -3,6 +3,8 @@ type CardVoucherWalletProps = {
     backgroundColor: string;
     imageSrc: string;
     quantity: number;
+    isExpired?: boolean;
+    isUsed?: boolean;
 };
 
 const CardVoucherWallet: React.FC<CardVoucherWalletProps> = ({
@@ -10,6 +12,8 @@ const CardVoucherWallet: React.FC<CardVoucherWalletProps> = ({
     backgroundColor,
     imageSrc,
     quantity,
+    isExpired = false,
+    isUsed = false,
 }) => {
     const currentDate = new Date();
     const startDate = new Date(voucher.startDate);
@@ -18,11 +22,19 @@ const CardVoucherWallet: React.FC<CardVoucherWalletProps> = ({
     let expirationText = "";
     let buttonText = "";
     let isDisabled = false;
+    let overlayText = "";
 
-    if (endDate < currentDate) {
+    // Xác định trạng thái voucher
+    if (isUsed) {
+        expirationText = `Đã sử dụng`;
+        buttonText = "Đã sử dụng";
+        isDisabled = true;
+        overlayText = "ĐÃ SỬ DỤNG";
+    } else if (isExpired || endDate < currentDate) {
         expirationText = "Đã quá hạn";
         buttonText = "Đã quá hạn";
         isDisabled = true;
+        overlayText = "ĐÃ HẾT HẠN";
     } else if (startDate > currentDate) {
         const daysUntilStart = Math.ceil((startDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
         expirationText = `Có hiệu lực sau: ${daysUntilStart} ngày`;
@@ -44,12 +56,13 @@ const CardVoucherWallet: React.FC<CardVoucherWalletProps> = ({
                 boxShadow: "2px 2px 4px rgba(0, 0, 0, 0.1)",
                 flex: "1",
                 position: "relative",
+                opacity: isDisabled ? 0.8 : 1,
             }}
         >
             {/* Phần răng cưa bên trái */}
             <div
                 style={{
-                    backgroundColor: backgroundColor,
+                    backgroundColor: isDisabled ? "#999" : backgroundColor,
                     width: "100px",
                     display: "flex",
                     flexDirection: "column",
@@ -81,6 +94,7 @@ const CardVoucherWallet: React.FC<CardVoucherWalletProps> = ({
                         style={{
                             width: "50px",
                             height: "50px",
+                            opacity: isDisabled ? 0.7 : 1,
                         }}
                     />
                     <div style={{ fontWeight: "500", color: "#fff" }}>{voucher.code}</div>
@@ -98,15 +112,15 @@ const CardVoucherWallet: React.FC<CardVoucherWalletProps> = ({
                 }}
             >
                 <div style={{ flex: 1, maxWidth: "200px" }}>
-                    <h3 style={{ margin: "0 0 0.5rem", color: "#333" }}>{voucher.title}</h3>
-                    <p style={{ margin: "0 0 0.5rem", color: "#555" }}>{voucher.description}</p>
+                    <h3 style={{ margin: "0 0 0.5rem", color: isDisabled ? "#999" : "#333" }}>{voucher.title}</h3>
+                    <p style={{ margin: "0 0 0.5rem", color: isDisabled ? "#999" : "#555" }}>{voucher.description}</p>
                     <div style={{ display: "flex" }}>
                         <p style={{ margin: "0", color: "#888", fontSize: "0.75rem", marginRight: "0.625rem" }}>
                             {expirationText}
                         </p>
                         <div
                             style={{
-                                color: "#05a",
+                                color: isDisabled ? "#888" : "#05a",
                                 fontWeight: "500",
                                 fontSize: "0.75rem",
                                 textAlign: "right",
@@ -152,6 +166,39 @@ const CardVoucherWallet: React.FC<CardVoucherWalletProps> = ({
                     }}
                 >
                     x{quantity}
+                </div>
+            )}
+
+            {/* Overlay cho voucher đã sử dụng hoặc quá hạn */}
+            {isDisabled && overlayText && (
+                <div
+                    style={{
+                        position: "absolute",
+                        top: "0",
+                        left: "0",
+                        width: "100%",
+                        height: "100%",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        backgroundColor: "rgba(0, 0, 0, 0.1)",
+                        pointerEvents: "none",
+                    }}
+                >
+                    <div
+                        style={{
+                            transform: "rotate(-25deg)",
+                            border: "2px solid #d0011b",
+                            color: "#d0011b",
+                            padding: "5px 15px",
+                            borderRadius: "5px",
+                            fontSize: "1.2rem",
+                            fontWeight: "bold",
+                            backgroundColor: "rgba(255, 255, 255, 0.8)",
+                        }}
+                    >
+                        {overlayText}
+                    </div>
                 </div>
             )}
         </div>
