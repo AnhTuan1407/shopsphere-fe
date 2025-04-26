@@ -4,9 +4,9 @@ import { toast } from "react-toastify";
 import arrow from "../assets/arrow.svg";
 import deliveryIcon from "../assets/delivery-icon.svg";
 import privacyIcon from "../assets/privacy-icon.svg";
-import starRating from "../assets/star-rating.svg";
 import ButtonField from "../components/ButtonField";
 import CardProductVariant from "../components/CardProductVariant";
+import StarRating from "../components/StarRating";
 import { useCart } from "../contexts/CartContext";
 import Product from "../models/product.model";
 import ProductVariants from "../models/productVariants.model";
@@ -14,7 +14,9 @@ import ReviewPage from "../pages/ReviewPage";
 import cartService from "../services/cart.service";
 import productService from "../services/product.service";
 import reviewService from "../services/review.service";
-import StarRating from "../components/StarRating";
+import saleService from "../services/sale.service";
+import FlashSale from "../models/flashSale.model";
+import FlashSaleItem from "../models/flashSaleItem.model";
 
 const DetailProduct = () => {
     const navigate = useNavigate();
@@ -29,6 +31,9 @@ const DetailProduct = () => {
     const [averageRating, setAverageRating] = useState<any>(0);
     const [imgView, setImgView] = useState<any>();
     const { cartItemCount, setCartItemCount } = useCart();
+
+    const [flashSales, setFlashSales] = useState<FlashSale[]>([]);
+    const [flashSaleItem, setFlashSaleItem] = useState<FlashSaleItem | null>(null);
 
     const { id } = useParams();
 
@@ -71,6 +76,47 @@ const DetailProduct = () => {
         fetchAverageRating();
     }, [])
 
+    // Fetch Flash Sales
+    useEffect(() => {
+        const fetchFlashSales = async () => {
+            try {
+                const response = await saleService.getAllFlashSalesActive();
+                if (response.code === 1000) {
+                    const flashSaleData = response.result as FlashSale[];
+                    setFlashSales(flashSaleData);
+                } else {
+                    toast.error(response.message);
+                }
+            } catch (error) {
+                console.error("Lỗi khi lấy danh sách flash sale:", error);
+                toast.error("Có lỗi xảy ra khi tải flash sale");
+            }
+        };
+
+        fetchFlashSales();
+    }, []);
+
+    // Kiểm tra sản phẩm có trong flash sale không
+    useEffect(() => {
+        if (!product || !flashSales.length) return;
+
+        // Tìm flash sale item cho sản phẩm hiện tại
+        for (const flashSale of flashSales) {
+            const foundItem = flashSale.flashSaleItems.find(item =>
+                item.productId === product.id &&
+                (!selectedVariantId || item.productVariantId === selectedVariantId)
+            );
+
+            if (foundItem) {
+                setFlashSaleItem(foundItem);
+                return;
+            }
+        }
+
+        // Nếu không tìm thấy, reset flash sale item
+        setFlashSaleItem(null);
+    }, [product, flashSales, selectedVariantId]);
+
     const getDeliveryDateRange = () => {
         const today = new Date();
         const startDate = new Date(today);
@@ -92,6 +138,20 @@ const DetailProduct = () => {
         setImgView(variant.imageUrl);
         setSelectedVariant(variant);
         setSelectedVariantId(variant?.id ?? null);
+
+        for (const flashSale of flashSales) {
+            const foundItem = flashSale.flashSaleItems.find(item =>
+                item.productId === product.id &&
+                item.productVariantId === variant.id
+            );
+
+            if (foundItem) {
+                setFlashSaleItem(foundItem);
+                return;
+            }
+        }
+
+        setFlashSaleItem(null);
     };
 
     const handleIncrease = () => {
@@ -160,6 +220,41 @@ const DetailProduct = () => {
 
         addToCart();
     }
+
+    // Tính giá giảm giá
+    const calculateDiscountedPrice = () => {
+        if (!flashSaleItem || !selectedVariant) return null;
+
+        const originalPrice = selectedVariant.price || 0;
+
+        if (flashSaleItem.discountType === 'PERCENTAGE') {
+            const discountAmount = originalPrice * (flashSaleItem.discountValue / 100);
+            return originalPrice - discountAmount;
+        } else if (flashSaleItem.discountType === 'AMOUNT') {
+            return originalPrice - flashSaleItem.discountValue;
+        }
+
+        return originalPrice;
+    };
+
+    // Tính phần trăm giảm giá
+    const calculateDiscountPercentage = () => {
+        if (!flashSaleItem || !selectedVariant) return 0;
+
+        const originalPrice = selectedVariant.price || 0;
+        if (originalPrice === 0) return 0;
+
+        if (flashSaleItem.discountType === 'PERCENTAGE') {
+            return flashSaleItem.discountValue;
+        } else if (flashSaleItem.discountType === 'AMOUNT') {
+            return Math.round((flashSaleItem.discountValue / originalPrice) * 100);
+        }
+
+        return 0;
+    };
+
+    const discountedPrice = calculateDiscountedPrice();
+    const discountPercentage = calculateDiscountPercentage();
 
     return (
         <>
@@ -307,7 +402,9 @@ const DetailProduct = () => {
                                     fontSize: "28px",
                                     fontWeight: "500px",
                                 }}>
-                                    {selectedVariant?.price?.toLocaleString("vi-VN")}
+                                    {flashSaleItem
+                                        ? (discountedPrice || 0).toLocaleString("vi-VN")
+                                        : selectedVariant?.price?.toLocaleString("vi-VN")}
                                 </div>
                             </div>
                             <div style={{
@@ -315,7 +412,9 @@ const DetailProduct = () => {
                                 textDecoration: "line-through",
                                 margin: "0 10px"
                             }}>
-                                ₫{((selectedVariant?.price ?? 0) * 128 / 100).toLocaleString("vi-VN")};
+                                {flashSaleItem
+                                    && `₫${selectedVariant?.price?.toLocaleString("vi-VN")}`
+                                }
                             </div>
                             <div style={{
                                 backgroundColor: "#feeeea",
@@ -326,8 +425,24 @@ const DetailProduct = () => {
                                 height: "18px",
                                 padding: "0 4px"
                             }}>
-                                -28%
+                                {flashSaleItem
+                                    && `-${discountPercentage}%`
+                                }
                             </div>
+
+                            {flashSaleItem && (
+                                <div style={{
+                                    backgroundColor: "#ee4d2d",
+                                    color: "#fff",
+                                    fontSize: "12px",
+                                    fontWeight: "500",
+                                    padding: "2px 6px",
+                                    borderRadius: "2px",
+                                    marginLeft: "10px"
+                                }}>
+                                    Flash Sale
+                                </div>
+                            )}
                         </div>
 
                         {/* Delivery */}

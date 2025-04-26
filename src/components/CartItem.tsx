@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
+import FlashSale from "../models/flashSale.model";
+import FlashSaleItem from "../models/flashSaleItem.model";
+import saleService from "../services/sale.service";
+import { toast } from "react-toastify";
 
 type Props = {
     id?: number,
+    productId?: number,
+    productVariantId?: number,
     productName?: string,
     productImage?: string,
+    variantImage?: string,
     categoryName?: string,
     variantColor?: string,
     variantSize?: string,
@@ -11,14 +18,17 @@ type Props = {
     quantity?: number,
     selected?: boolean,
     onUpdateQuantity?: (itemId: number, newQuantity: number) => void,
-    onSelectItem?: (itemId: number, isSelected: boolean) => void,
+    onSelectItem?: (itemId: number, isSelected: boolean, totalUnitPrice: number, unitPrice: number) => void,
     onDeleteItem?: (itemId: number) => void,
 }
 
 const CartItem = ({
     id,
+    productId,
+    productVariantId,
     productName,
     productImage,
+    variantImage,
     categoryName,
     variantColor,
     variantSize,
@@ -32,9 +42,17 @@ const CartItem = ({
     const [quantityState, setQuantityState] = useState(quantity);
     const [selectedState, setSelectedState] = useState(selected);
 
+    const [flashSales, setFlashSales] = useState<FlashSale[]>([]);
+    const [flashSaleItem, setFlashSaleItem] = useState<FlashSaleItem | null>(null);
+
     const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSelectedState(prev => !prev);
-        onSelectItem && id && onSelectItem(id, e.target.checked);
+        const isChecked = e.target.checked;
+        const unitPrice = flashSaleItem?.flashSalePrice;
+        const totalUnitPrice = calculateTotalPrice();
+
+        setSelectedState(isChecked);
+
+        onSelectItem && id && onSelectItem(id, isChecked, totalUnitPrice, unitPrice!);
     };
 
     useEffect(() => {
@@ -58,6 +76,88 @@ const CartItem = ({
         onUpdateQuantity?.(id, newQuantity);
     };
 
+    // Fetch Flash Sales
+    useEffect(() => {
+        const fetchFlashSales = async () => {
+            try {
+                const response = await saleService.getAllFlashSalesActive();
+                if (response.code === 1000) {
+                    const flashSaleData = response.result as FlashSale[];
+                    setFlashSales(flashSaleData);
+                } else {
+                    console.error(response.message);
+                }
+            } catch (error) {
+                console.error("Lỗi khi lấy danh sách flash sale:", error);
+            }
+        };
+
+        fetchFlashSales();
+    }, []);
+
+    // Kiểm tra sản phẩm có trong flash sale không
+    useEffect(() => {
+        if (!productId || !flashSales.length) return;
+
+        // Tìm flash sale item cho sản phẩm hiện tại
+        for (const flashSale of flashSales) {
+            const foundItem = flashSale.flashSaleItems.find(item =>
+                item.productId === productId &&
+                (!productVariantId || item.productVariantId === productVariantId)
+            );
+
+            if (foundItem) {
+                setFlashSaleItem(foundItem);
+                return;
+            }
+        }
+
+        // Nếu không tìm thấy, reset flash sale item
+        setFlashSaleItem(null);
+    }, [productId, flashSales, productVariantId]);
+
+    // Tính giá giảm giá
+    const calculateDiscountedPrice = () => {
+        if (!flashSaleItem || !variantPrice) return null;
+
+        const originalPrice = variantPrice || 0;
+
+        if (flashSaleItem.discountType === 'PERCENTAGE') {
+            const discountAmount = originalPrice * (flashSaleItem.discountValue / 100);
+            return originalPrice - discountAmount;
+        } else if (flashSaleItem.discountType === 'AMOUNT') {
+            return originalPrice - flashSaleItem.discountValue;
+        }
+
+        return originalPrice;
+    };
+
+    // Tính phần trăm giảm giá
+    const calculateDiscountPercentage = () => {
+        if (!flashSaleItem || !variantPrice) return 0;
+
+        const originalPrice = variantPrice || 0;
+        if (originalPrice === 0) return 0;
+
+        if (flashSaleItem.discountType === 'PERCENTAGE') {
+            return flashSaleItem.discountValue;
+        } else if (flashSaleItem.discountType === 'AMOUNT') {
+            return Math.round((flashSaleItem.discountValue / originalPrice) * 100);
+        }
+
+        return 0;
+    };
+
+    const discountedPrice = calculateDiscountedPrice();
+    const discountPercentage = calculateDiscountPercentage();
+
+    // Tính giá tổng dựa trên giá giảm nếu sản phẩm có trong flash sale
+    const calculateTotalPrice = () => {
+        if (flashSaleItem && discountedPrice) {
+            return quantityState * discountedPrice;
+        }
+        return quantityState * (variantPrice || 0);
+    };
 
     return (
         <div style={{ display: "flex", alignItems: "center", padding: "12px 20px", borderBottom: "1px solid #f0f0f0" }}>
@@ -69,7 +169,7 @@ const CartItem = ({
             {/* Product Image */}
             <div style={{ flexBasis: "15%", textAlign: "center" }}>
                 <img
-                    src={productImage}
+                    src={variantImage}
                     alt="product"
                     style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "4px" }}
                 />
@@ -84,8 +184,24 @@ const CartItem = ({
             </div>
 
             {/* Unit Price */}
-            <div style={{ flexBasis: "15%", textAlign: "center", fontSize: "14px", color: "#888" }}>
-                ₫{variantPrice?.toLocaleString("vi-VN")}
+            <div style={{ flexBasis: "15%", textAlign: "center", fontSize: "14px" }}>
+                {flashSaleItem ? (
+                    <div>
+                        <div style={{ color: "#ee4d2d", fontWeight: "500" }}>
+                            ₫{discountedPrice!.toLocaleString("vi-VN")}
+                        </div>
+                        <div style={{ textDecoration: "line-through", color: "#888", fontSize: "12px" }}>
+                            ₫{variantPrice!.toLocaleString("vi-VN")}
+                        </div>
+                        <div style={{ color: "#ee4d2d", fontSize: "12px", backgroundColor: "#fff0ee", padding: "1px 4px", display: "inline-block", borderRadius: "2px", margin: "2px 0" }}>
+                            -{discountPercentage}%
+                        </div>
+                    </div>
+                ) : (
+                    <div style={{ color: "#888" }}>
+                        ₫{variantPrice!.toLocaleString("vi-VN")}
+                    </div>
+                )}
             </div>
 
             {/* Quantity */}
@@ -138,7 +254,7 @@ const CartItem = ({
 
             {/* Total Price */}
             <div style={{ flexBasis: "15%", textAlign: "center", fontSize: "14px", color: "#ee4d2d", fontWeight: "bold" }}>
-                ₫{(quantityState * (variantPrice || 0)).toLocaleString("vi-VN")}
+                ₫{calculateTotalPrice().toLocaleString("vi-VN")}
             </div>
 
             {/* Delete Button */}

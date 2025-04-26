@@ -24,6 +24,11 @@ const saleService = {
         const response = await api.get(`/sales/flash-sale/supplier/${id}`);
         return response.data;
     },
+
+    getAllFlashSalesActive: async (): Promise<ApiResponse> => {
+        const response = await api.get("/sales/flash-sale/active");
+        return response.data;
+    },
 }
 
 export default saleService;

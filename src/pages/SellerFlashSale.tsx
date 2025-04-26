@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import FlashSaleList from "../components/FlashSaleList";
+import FlashSale from "../models/flashSale.model";
 import Product from "../models/product.model";
 import Supplier from "../models/supplier.model";
-import FlashSale from "../models/flashSale.mode";
 import productService from "../services/product.service";
 import saleService from "../services/sale.service";
 import supplierService from "../services/supplier.service";
-import FlashSaleList from "../components/FlashSaleList";
 
 const SellerFlashSale = () => {
     const [showPopup, setShowPopup] = useState(false);

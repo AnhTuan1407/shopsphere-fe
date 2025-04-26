@@ -1,5 +1,4 @@
-import React from "react";
-import FlashSaleItem from "../models/flashSaleItem";
+import FlashSaleItem from "../models/flashSaleItem.model";
 
 type Props = {
     item: FlashSaleItem;
