@@ -27,6 +27,11 @@ const supplierService = {
         const response = await api.get(`/suppliers/${id}`);
         return response.data;
     },
+
+    getAllProductsBySupplierId: async (id: number): Promise<ApiResponse> => {
+        const response = await api.get(`/products/by-supplier?id=${id}`);
+        return response.data;
+    },
 }
 
 export default supplierService;
