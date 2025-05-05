@@ -7,6 +7,8 @@ import Voucher from "../models/voucher.model";
 import voucherService from "../services/voucher.service";
 import Supplier from "../models/supplier.model";
 import supplierService from "../services/supplier.service";
+import Product from "../models/product.model";
+import CardProduct from "../components/CardProduct";
 
 type UserVoucher = {
     id: number,
@@ -24,6 +26,8 @@ const DetailSupplier = () => {
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
     const [supplier, setSupplier] = useState<Supplier>();
     const { id } = useParams();
+
+    const [products, setProducts] = useState<Product[]>([]);
 
     // Kiểm tra trạng thái đăng nhập
     useEffect(() => {
@@ -57,6 +61,23 @@ const DetailSupplier = () => {
             setLoading(false);
         }
     };
+
+    // Lấy danh sách sản phẩm của supplier
+    const fetchProducts = async () => {
+        try {
+            const response = await supplierService.getAllProductsBySupplierId(Number(id));
+            if (response.code === 1000) {
+                setProducts(response.result as Product[]);
+            }
+        } catch (error) {
+            toast.error("Có lỗi xảy ra khi lấy danh sách sản phẩm");
+        }
+    };
+
+    // Gọi fetchProducts khi id thay đổi
+    useEffect(() => {
+        if (id) fetchProducts();
+    }, [id]);
 
     const fetchClaimedVouchers = async () => {
         try {
@@ -374,8 +395,26 @@ const DetailSupplier = () => {
                 </div>
             )}
 
-            <div>
-                
+            {/* Danh sách sản phẩm của supplier */}
+            <div style={{
+                padding: "20px",
+                maxWidth: "1200px",
+                margin: "0 auto",
+                backgroundColor: "#fff",
+                marginTop: "20px"
+            }}>
+                <h3 style={{ marginBottom: "16px", fontSize: "1.1rem", color: "#333" }}>Sản phẩm của shop</h3>
+                <div
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(5, 1fr)",
+                        gap: "20px",
+                    }}
+                >
+                    {products.map((product) => (
+                        <CardProduct key={product.id} {...product} />
+                    ))}
+                </div>
             </div>
         </>
     )

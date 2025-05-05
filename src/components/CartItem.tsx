@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
-import FlashSale from "../models/flashSale.model";
 import FlashSaleItem from "../models/flashSaleItem.model";
-import saleService from "../services/sale.service";
-import { toast } from "react-toastify";
 
 type Props = {
     id?: number,
@@ -17,8 +14,9 @@ type Props = {
     variantPrice?: number,
     quantity?: number,
     selected?: boolean,
+    flashSaleItem?: FlashSaleItem | null,
     onUpdateQuantity?: (itemId: number, newQuantity: number) => void,
-    onSelectItem?: (itemId: number, isSelected: boolean, totalUnitPrice: number, unitPrice: number) => void,
+    onSelectItem?: (itemId: number, isSelected: boolean) => void,
     onDeleteItem?: (itemId: number) => void,
 }
 
@@ -35,6 +33,7 @@ const CartItem = ({
     variantPrice,
     quantity = 1,
     selected,
+    flashSaleItem,
     onUpdateQuantity,
     onSelectItem,
     onDeleteItem
@@ -42,17 +41,10 @@ const CartItem = ({
     const [quantityState, setQuantityState] = useState(quantity);
     const [selectedState, setSelectedState] = useState(selected);
 
-    const [flashSales, setFlashSales] = useState<FlashSale[]>([]);
-    const [flashSaleItem, setFlashSaleItem] = useState<FlashSaleItem | null>(null);
-
     const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const isChecked = e.target.checked;
-        const unitPrice = flashSaleItem?.flashSalePrice;
-        const totalUnitPrice = calculateTotalPrice();
-
         setSelectedState(isChecked);
-
-        onSelectItem && id && onSelectItem(id, isChecked, totalUnitPrice, unitPrice!);
+        onSelectItem && id && onSelectItem(id, isChecked);
     };
 
     useEffect(() => {
@@ -76,47 +68,7 @@ const CartItem = ({
         onUpdateQuantity?.(id, newQuantity);
     };
 
-    // Fetch Flash Sales
-    useEffect(() => {
-        const fetchFlashSales = async () => {
-            try {
-                const response = await saleService.getAllFlashSalesActive();
-                if (response.code === 1000) {
-                    const flashSaleData = response.result as FlashSale[];
-                    setFlashSales(flashSaleData);
-                } else {
-                    console.error(response.message);
-                }
-            } catch (error) {
-                console.error("Lỗi khi lấy danh sách flash sale:", error);
-            }
-        };
-
-        fetchFlashSales();
-    }, []);
-
-    // Kiểm tra sản phẩm có trong flash sale không
-    useEffect(() => {
-        if (!productId || !flashSales.length) return;
-
-        // Tìm flash sale item cho sản phẩm hiện tại
-        for (const flashSale of flashSales) {
-            const foundItem = flashSale.flashSaleItems.find(item =>
-                item.productId === productId &&
-                (!productVariantId || item.productVariantId === productVariantId)
-            );
-
-            if (foundItem) {
-                setFlashSaleItem(foundItem);
-                return;
-            }
-        }
-
-        // Nếu không tìm thấy, reset flash sale item
-        setFlashSaleItem(null);
-    }, [productId, flashSales, productVariantId]);
-
-    // Tính giá giảm giá
+    // Tính giá sau khi giảm giá (nếu có flash sale)
     const calculateDiscountedPrice = () => {
         if (!flashSaleItem || !variantPrice) return null;
 
@@ -267,7 +219,6 @@ const CartItem = ({
                         cursor: "pointer",
                         fontSize: "16px",
                     }}
-
                     onClick={() => {
                         if (id) {
                             onDeleteItem?.(id);

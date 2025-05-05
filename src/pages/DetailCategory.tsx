@@ -1,13 +1,23 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import CardProduct from "../components/CardProduct";
+import DynamicBanner from "../components/DynamicBanner"; // Import the new component
 import Product from "../models/product.model";
 import productService from "../services/product.service";
+import DynamicSingleBanner from "../components/DynamicSingleBanner";
 
 const DetailCategory = () => {
     const { id } = useParams<{ id: string }>();
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+
+    // Banner images array
+    const bannerImages = [
+        "/assets/banners/banner-1.jpg",
+        "/assets/banners/banner-2.jpg",
+        "/assets/banners/banner-3.png",
+        "/assets/banners/banner-4.jpg"
+    ];
 
     useEffect(() => {
         const fetchProductsByCategory = async () => {
@@ -34,26 +44,18 @@ const DetailCategory = () => {
                 width: "1200px",
                 margin: "0 auto",
             }}>
-                {/* Banner */}
-                <div style={{
-                    backgroundColor: "#fff",
-                    display: "flex",
-                    alignItems: "center",
-                    marginTop: "1.5rem",
-                    marginBottom: "1.5rem"
-                }}>
-                    <img src="/assets/banners/banner-4.jpg" alt="banner"
-                        style={{
-                            width: "100%",
-                            objectFit: "contain",
-                        }}
-                    />
-                </div>
+                {/* Dynamic Banner */}
+                <DynamicSingleBanner
+                    images={bannerImages}
+                    autoplayInterval={4000}
+                    height="250px"
+                />
 
                 {/* Shopee Mall */}
                 <div style={{
                     backgroundColor: "#fff"
                 }}>
+                    {/* Rest of your code remains the same */}
                     <div style={{
                         display: "flex",
                         justifyContent: "space-between",
@@ -110,7 +112,7 @@ const DetailCategory = () => {
                                         left: "0",
                                         width: "100%",
                                         height: "100%",
-                                        backgroundColor: "rgba(0, 0, 0, 0.3)", // Hiệu ứng overlay khi hover
+                                        backgroundColor: "rgba(0, 0, 0, 0.3)",
                                         opacity: "0",
                                         transition: "opacity 0.3s ease",
                                     }}
@@ -171,22 +173,19 @@ const DetailCategory = () => {
                     </div>
 
                     {loading ? (
-                        // Hiển thị loading khi đang tải dữ liệu
                         <div style={{ textAlign: "center", padding: "2rem 0", fontSize: "1.25rem" }}>
                             Đang tải sản phẩm...
                         </div>
                     ) : products.length === 0 ? (
-                        // Hiển thị thông báo nếu không có sản phẩm
                         <div style={{ textAlign: "center", padding: "2rem 0", fontSize: "1.25rem", color: "#888" }}>
                             Không có sản phẩm nào trong danh mục này.
                         </div>
                     ) : (
-                        // Hiển thị danh sách sản phẩm
                         <div
                             style={{
                                 display: "grid",
-                                gridTemplateColumns: "repeat(6, 1fr)", // 6 sản phẩm 1 hàng
-                                gap: "10px", // Khoảng cách giữa các sản phẩm
+                                gridTemplateColumns: "repeat(6, 1fr)",
+                                gap: "10px",
                                 marginTop: "1rem",
                             }}
                         >

@@ -6,6 +6,9 @@ import CartItem from "../components/CartItem";
 import Cart from "../models/cart.model";
 import cartService from "../services/cart.service";
 import productService from "../services/product.service";
+import saleService from "../services/sale.service";
+import FlashSale from "../models/flashSale.model";
+import FlashSaleItem from "../models/flashSaleItem.model";
 
 const groupCartItemsBySupplier = (cartItems: Array<any>) => {
     return cartItems.reduce((grouped: Record<string, Array<any>>, item) => {
@@ -27,8 +30,27 @@ const CartPage = () => {
     });
 
     const [totalPrice, setTotalPrice] = useState<number>(0);
-    const [totalUnitPrice, setTotalUnitPrice] = useState<number>(0);
-    const [itemPrice, setItemPrice] = useState<number>(0);
+    const [flashSales, setFlashSales] = useState<FlashSale[]>([]);
+    const [selectAll, setSelectAll] = useState<boolean>(false);
+
+    // Fetch Flash Sales - chỉ fetch ở CartPage
+    useEffect(() => {
+        const fetchFlashSales = async () => {
+            try {
+                const response = await saleService.getAllFlashSalesActive();
+                if (response.code === 1000) {
+                    const flashSaleData = response.result as FlashSale[];
+                    setFlashSales(flashSaleData);
+                } else {
+                    console.error(response.message);
+                }
+            } catch (error) {
+                console.error("Lỗi khi lấy danh sách flash sale:", error);
+            }
+        };
+
+        fetchFlashSales();
+    }, []);
 
     useEffect(() => {
         const storedProfileId = localStorage.getItem("profileId");
@@ -48,7 +70,6 @@ const CartPage = () => {
                 ]);
 
                 const cartData: Cart = cartResponse.result || { cartItems: [], cartItemsMapper: [], totalPrice: 0 };
-                setCart(cartResponse.result!);
 
                 const productsData = productResponse;
                 const suppliersData = supplierResponse;
@@ -57,6 +78,19 @@ const CartPage = () => {
                     const product = productsData.find((p) => p.id === cartItem.productId) || {};
                     const variant = product.variants?.find((v) => v.id === cartItem.productVariantId) || {};
                     const supplier = suppliersData.find((s) => s.id === cartItem.supplierId) || {};
+
+                    // Tìm flash sale item cho sản phẩm này
+                    let flashSaleItem: FlashSaleItem | null = null;
+                    for (const flashSale of flashSales) {
+                        const foundItem = flashSale.flashSaleItems.find(item =>
+                            item.productId === cartItem.productId &&
+                            (!cartItem.productVariantId || item.productVariantId === cartItem.productVariantId)
+                        );
+                        if (foundItem) {
+                            flashSaleItem = foundItem;
+                            break;
+                        }
+                    }
 
                     return {
                         ...cartItem,
@@ -72,7 +106,8 @@ const CartPage = () => {
                         supplierId: product.supplier?.id || "",
                         supplierImage: supplier.imageUrl || "",
                         quantity: cartItem.quantity || 1,
-                        variantImage: variant.imageUrl
+                        variantImage: variant.imageUrl,
+                        flashSaleItem, // Truyền flash sale item xuống component con
                     };
                 });
 
@@ -82,10 +117,14 @@ const CartPage = () => {
                         cartItemsMapper: mappedCartItems,
                     }));
 
-                    const initialTotalPrice = mappedCartItems
-                        .filter((item) => item.selected)
-                        .reduce((total, item) => total + item.quantity * item.variantPrice, 0);
+                    // Tính toán tổng tiền ban đầu dựa trên các sản phẩm được chọn
+                    const initialTotalPrice = calculateTotalPrice(mappedCartItems);
                     setTotalPrice(initialTotalPrice);
+
+                    // Kiểm tra xem có tất cả các item đều được chọn không
+                    const allSelected = mappedCartItems.length > 0 &&
+                        mappedCartItems.every(item => item.selected);
+                    setSelectAll(allSelected);
                 }
             } catch (error) {
                 toast.error(`Có lỗi xảy ra: ${error instanceof Error ? error.message : String(error)}`);
@@ -93,14 +132,27 @@ const CartPage = () => {
         };
 
         fetchData();
+    }, [navigate, flashSales]);
 
-        setTotalPrice(cart.totalPrice || 0);
-    }, [navigate]);
+    // Hàm tính toán tổng tiền dựa trên danh sách sản phẩm được chọn
+    const calculateTotalPrice = (items: any[]) => {
+        return items
+            .filter((item) => item.selected)
+            .reduce((total, item) => {
+                // Tính toán giá sau khi áp dụng flash sale (nếu có)
+                const price = item.flashSaleItem
+                    ? (item.flashSaleItem.discountType === 'PERCENTAGE'
+                        ? item.variantPrice * (1 - item.flashSaleItem.discountValue / 100)
+                        : item.variantPrice - item.flashSaleItem.discountValue)
+                    : item.variantPrice;
+                return total + item.quantity * price;
+            }, 0);
+    };
 
     // Nhóm sản phẩm theo supplier
     const groupedCartItems = groupCartItemsBySupplier(cart.cartItemsMapper!);
 
-    const handleSelectItem = async (id: number, isSelected: boolean, itemTotalPrice: number, unitPrice: number) => {
+    const handleSelectItem = async (id: number, isSelected: boolean) => {
         try {
             await cartService.selectCartItem(id);
             setCart((prevCart) => {
@@ -111,40 +163,49 @@ const CartPage = () => {
                     return item;
                 });
 
-                const updatedTotalPrice = updatedCartItems
-                    .filter((item) => item.selected)
-                    .reduce((total, item) => total + itemTotalPrice, 0);
-
+                // Tính lại tổng tiền dựa trên tất cả item được chọn
+                const updatedTotalPrice = calculateTotalPrice(updatedCartItems);
                 setTotalPrice(updatedTotalPrice);
-                setItemPrice(unitPrice);
+
+                // Kiểm tra xem tất cả các item có được chọn không
+                const allSelected = updatedCartItems.length > 0 &&
+                    updatedCartItems.every(item => item.selected);
+                setSelectAll(allSelected);
+
                 return {
                     ...prevCart,
                     cartItemsMapper: updatedCartItems,
                 };
             });
         } catch (error) {
-            toast.error(`Có lỗi xảy ra:  ${error instanceof Error ? error.message : String(error)}`);
+            toast.error(`Có lỗi xảy ra: ${error instanceof Error ? error.message : String(error)}`);
         }
     };
 
     const handleDeleteItem = async (id: number) => {
-        const response = await cartService.deleteCartItem(id);
-        if (response) {
-            setCart((prevCart) => {
-                const updatedCartItems = (prevCart.cartItemsMapper ?? []).filter((item) => item.id !== id);
-                const updatedTotalPrice = updatedCartItems
-                    .filter((item) => item.selected)
-                    .reduce((total, item) => total + item.quantity * item.variantPrice, 0);
-                setTotalPrice(updatedTotalPrice);
+        try {
+            const response = await cartService.deleteCartItem(id);
+            if (response) {
+                setCart((prevCart) => {
+                    const updatedCartItems = (prevCart.cartItemsMapper ?? []).filter((item) => item.id !== id);
+                    const updatedTotalPrice = calculateTotalPrice(updatedCartItems);
+                    setTotalPrice(updatedTotalPrice);
 
-                return {
-                    ...prevCart,
-                    cartItemsMapper: updatedCartItems,
-                };
-            });
-        }
-        else {
-            toast.error("Xóa sản phẩm thất bại!");
+                    // Kiểm tra xem tất cả các item có được chọn không
+                    const allSelected = updatedCartItems.length > 0 &&
+                        updatedCartItems.every(item => item.selected);
+                    setSelectAll(allSelected);
+
+                    return {
+                        ...prevCart,
+                        cartItemsMapper: updatedCartItems,
+                    };
+                });
+            } else {
+                toast.error("Xóa sản phẩm thất bại!");
+            }
+        } catch (error) {
+            toast.error(`Có lỗi xảy ra: ${error instanceof Error ? error.message : String(error)}`);
         }
     };
 
@@ -160,9 +221,7 @@ const CartPage = () => {
                     return item;
                 });
 
-                const updatedTotalPrice = updatedCartItems
-                    .filter((item) => item.selected)
-                    .reduce((total, item) => total + item.quantity * item.variantPrice, 0);
+                const updatedTotalPrice = calculateTotalPrice(updatedCartItems);
                 setTotalPrice(updatedTotalPrice);
 
                 return {
@@ -176,15 +235,46 @@ const CartPage = () => {
         }
     };
 
+    const handleSelectAll = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const isChecked = e.target.checked;
+        setSelectAll(isChecked);
+
+        try {
+            // Lưu ý: Bạn cần triển khai API selectAllCartItems nếu muốn lưu trạng thái chọn tất cả vào DB
+            // await cartService.selectAllCartItems(isChecked);
+
+            setCart((prevCart) => {
+                const updatedCartItems = (prevCart.cartItemsMapper ?? []).map((item) => {
+                    return { ...item, selected: isChecked };
+                });
+
+                // Nếu chọn tất cả, tính tổng tiền cho tất cả sản phẩm
+                // Nếu bỏ chọn tất cả, đặt tổng tiền về 0
+                const updatedTotalPrice = isChecked
+                    ? calculateTotalPrice(updatedCartItems)
+                    : 0;
+
+                setTotalPrice(updatedTotalPrice);
+
+                return {
+                    ...prevCart,
+                    cartItemsMapper: updatedCartItems,
+                };
+            });
+        } catch (error) {
+            toast.error(`Có lỗi xảy ra: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    };
+
     const handleOrder = async () => {
         const selectedItems = cart.cartItemsMapper?.filter((item) => item.selected);
-        if (selectedItems?.length === 0) {
+        if (!selectedItems || selectedItems.length === 0) {
             toast.error("Vui lòng chọn ít nhất một sản phẩm để mua.");
             return;
         }
 
-        navigate("/order", { state: { selectedItems, totalPrice, itemPrice } });
-    }
+        navigate("/order", { state: { selectedItems, totalPrice } });
+    };
 
     return (
         <div style={{ minWidth: "1200px", margin: "0 auto", padding: "20px 0" }}>
@@ -204,7 +294,7 @@ const CartPage = () => {
                 }}
             >
                 <div style={{ display: "flex", alignItems: "center", padding: "12px 20px", flexBasis: "48%" }}>
-                    <input type="checkbox" />
+                    <input type="checkbox" checked={selectAll} onChange={handleSelectAll} />
                     <div style={{ marginLeft: "5px", fontWeight: "500" }}>Sản phẩm</div>
                 </div>
                 <div style={{ padding: "12px 20px", flexBasis: "15%", textAlign: "center", fontWeight: "500" }}>Đơn giá</div>
@@ -252,8 +342,9 @@ const CartPage = () => {
                                 quantity={cartItem.quantity}
                                 selected={cartItem.selected}
                                 variantImage={cartItem.variantImage}
+                                flashSaleItem={cartItem.flashSaleItem}
                                 onUpdateQuantity={handleUpdateQuantity}
-                                onSelectItem={(id, isSelected, price, unitPrice) => handleSelectItem(id, isSelected, price, unitPrice)}
+                                onSelectItem={(id, isSelected) => handleSelectItem(id, isSelected)}
                                 onDeleteItem={handleDeleteItem}
                             />
                         ))}
@@ -275,7 +366,7 @@ const CartPage = () => {
                 }}
             >
                 <div style={{ display: "flex", alignItems: "center" }}>
-                    <input type="checkbox" />
+                    <input type="checkbox" checked={selectAll} onChange={handleSelectAll} />
                     <div style={{ marginLeft: "10px", color: "#888" }}>Chọn tất cả</div>
                 </div>
                 <div style={{ color: "#888", fontSize: "0.875rem" }}>

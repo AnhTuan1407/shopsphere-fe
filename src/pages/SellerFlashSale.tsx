@@ -44,7 +44,10 @@ const SellerFlashSale = () => {
                     // Lấy flash sale sau khi đã có supplierId
                     const flashSaleRes = await saleService.getAllFlashSalesBySupplierId(supplier.id);
                     if (flashSaleRes.code === 1000) {
-                        setFlashSales(flashSaleRes.result as FlashSale[]);
+                        const sortedFlashSales = (flashSaleRes.result as FlashSale[]).sort((a, b) => {
+                            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                        });
+                        setFlashSales(sortedFlashSales);
                     } else {
                         toast.error(flashSaleRes.message);
                     }
